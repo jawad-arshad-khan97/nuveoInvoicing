@@ -204,8 +204,6 @@ const App: React.FC = () => {
                     <ThemedLayoutV2
                       Header={() => <Header />}
                       Sider={() => <ThemedSiderV2 fixed />}
-                      initialSiderCollapsed={false}
-                      Title={ThemedTitleV2}
                     >
                       <Outlet />
                     </ThemedLayoutV2>

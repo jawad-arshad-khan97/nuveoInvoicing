@@ -13,7 +13,7 @@ export const authProvider = (
     };
   },
   logout: async () => {
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    logout({ returnTo: window.location.origin });
     return {
       success: true,
     };
@@ -39,7 +39,7 @@ export const authProvider = (
       } else {
         return {
           authenticated: false,
-          redirectTo: window.location.origin,
+          redirectTo: "/login",
           logout: true,
         };
       }
@@ -47,7 +47,7 @@ export const authProvider = (
       console.error("Auth check failed:", error);
       return {
         authenticated: false,
-        redirectTo: window.location.origin,
+        redirectTo: "/login",
         logout: true,
       };
     }
