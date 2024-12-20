@@ -9,9 +9,7 @@ export const AUTH_URLS = {
 
 // User-related endpoints
 export const USER_URLS = {
-  GET_ALL_USERS: `${BASE_URL_API_V1}/users`,
+  USERS: `${BASE_URL_API_V1}/users`,
   GET_USER_BY_EMAIL: (email: string) =>
-    `${BASE_URL_API_V1}/getUser/${encodeURIComponent(email)}`,
-  CREATE_USER: `${BASE_URL_API_V1}/users/create`,
-  UPDATE_USER: (userId: string) => `${BASE_URL_API_V1}/users/${userId}/update`,
+    `${USER_URLS.USERS}/getUser?email=${encodeURIComponent(email)}`,
 };

@@ -41,18 +41,22 @@ const createUser = async (req, res) => {
 
     const currentDate = new Date();
 
-    const currency = await Currency.create({
-      baseCurrency: "USD", // or any default currency
-      latestUpdatedTime: new Date(),
-      targetCurrency: "USD", // or any default currency
-    });
+    // const currency = await Currency.create({
+    //   baseCurrency: "USD", // or any default currency
+    //   latestUpdatedTime: new Date(),
+    //   targetCurrency: "USD", // or any default currency
+    // });
+
+    const maxIdAccount = await User.findOne().sort({ id: -1 }).select("id");
+    const nextId = maxIdAccount ? maxIdAccount.id + 1 : 1;
 
     const newUser = await User.create({
+      id: nextId,
       name,
       email,
       avatar,
       updatedDate: currentDate,
-      currency: currency._id,
+      // currency: currency._id,
     });
 
     res.status(200).json(newUser);

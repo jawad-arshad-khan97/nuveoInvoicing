@@ -8,15 +8,12 @@ export const authProvider = (
   getIdTokenClaims: any
 ): AuthProvider => ({
   login: async () => {
-    if (user) {
-      handleUserLogin(user);
-    }
     return {
       success: true,
     };
   },
   logout: async () => {
-    logout({ logoutParams: { returnTo: "/login" } });
+    logout({ logoutParams: { returnTo: window.location.origin } });
     return {
       success: true,
     };
@@ -42,7 +39,7 @@ export const authProvider = (
       } else {
         return {
           authenticated: false,
-          redirectTo: "/login",
+          redirectTo: window.location.origin,
           logout: true,
         };
       }
@@ -50,7 +47,7 @@ export const authProvider = (
       console.error("Auth check failed:", error);
       return {
         authenticated: false,
-        redirectTo: "/login",
+        redirectTo: window.location.origin,
         logout: true,
       };
     }
@@ -58,6 +55,7 @@ export const authProvider = (
   getPermissions: async () => null,
   getIdentity: async () => {
     if (user) {
+      handleUserCreationInDb(user);
       return {
         ...user,
         avatar: user.picture,
@@ -67,50 +65,29 @@ export const authProvider = (
   },
 });
 
-const handleUserLogin = async (user: any) => {
+const handleUserCreationInDb = async (user: any) => {
   try {
-    const userExistsResponse = await fetch(
-      USER_URLS.GET_USER_BY_EMAIL(user.email)
-    );
-    if (userExistsResponse.ok) {
-      const responseData = await userExistsResponse.json();
+    const response = await fetch(USER_URLS.USERS, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: user.name,
+        email: user.email,
+        avatar: user.picture,
+      }),
+    });
 
-      if (responseData.message.toLowerCase() === "user does not exist") {
-        const response = await fetch(USER_URLS.CREATE_USER, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: user.nickname,
-            email: user.name,
-            avatar: user.picture,
-          }),
-        });
+    const data = await response.json();
 
-        const data = await response.json();
-
-        if (response.status === 200) {
-          localStorage.setItem(
-            "user",
-            JSON.stringify({
-              ...user,
-              avatar: user.picture,
-              userid: data._id,
-              email: user.name,
-            })
-          );
-        }
-      } else {
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            ...user,
-            avatar: user.picture,
-            userid: responseData._id,
-            email: user.name,
-          })
-        );
-        console.log("else:" + responseData._id);
-      }
+    if (response.status === 200) {
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          ...user,
+          avatar: user.picture,
+          userid: data._id,
+        })
+      );
     }
   } catch (error) {
     console.error("Error handling user login:", error);
