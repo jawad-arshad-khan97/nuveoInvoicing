@@ -1,0 +1,8 @@
+// import { DataProvider } from "@refinedev/strapi-v4";
+// import { axiosInstance } from "@/providers/axios";
+// import { API_URL } from "@/utils/constants";
+// import { BASE_URL_API_V1 } from "@/utils/urls";
+
+// export const dataProvider = DataProvider(BASE_URL_API_V1, axiosInstance);
+
+// export const dataProvider = DataProvider(`${API_URL}/api`, axiosInstance);
