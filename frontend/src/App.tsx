@@ -1,9 +1,4 @@
-import {
-  AuthBindings,
-  Authenticated,
-  AuthProvider,
-  Refine,
-} from "@refinedev/core";
+import { Authenticated, Refine } from "@refinedev/core";
 import {
   useNotificationProvider,
   ThemedLayoutV2,
@@ -37,7 +32,7 @@ import {
   InvoicesPageShow,
 } from "@/pages/invoices";
 import dataProvider from "@refinedev/simple-rest";
-// import { authProvider } from "@/providers/auth-provider";
+import { authProvider } from "@/providers/auth-provider";
 import { ConfigProvider } from "@/providers/config-provider";
 import "@refinedev/antd/dist/reset.css";
 import "./styles/custom.css";
@@ -55,6 +50,7 @@ import {
 import { useAuth0 } from "@auth0/auth0-react";
 import { Login } from "./providers/auth-provider/login";
 import axios from "axios";
+import { BASE_URL_API_V1 } from "./utils/urls";
 
 const App: React.FC = () => {
   const { isLoading, user, logout, getIdTokenClaims } = useAuth0();
@@ -63,65 +59,7 @@ const App: React.FC = () => {
     return <Spin size="large" fullscreen={true} delay={200} />;
   }
 
-  // const createProvider = authProvider(user, logout, getIdTokenClaims);
-
-  const authProvider: AuthProvider = {
-    login: async () => {
-      return {
-        success: true,
-      };
-    },
-    logout: async () => {
-      logout({ returnTo: window.location.origin });
-      return {
-        success: true,
-      };
-    },
-    onError: async (error) => {
-      console.log(error);
-      if (error.response?.status === 401) {
-        return {
-          logout: true,
-        };
-      }
-
-      return { error };
-    },
-    check: async () => {
-      try {
-        const token = await getIdTokenClaims();
-        if (token) {
-          axios.defaults.headers.common.Authorization = `Bearer ${token.__raw}`;
-          return {
-            authenticated: true,
-          };
-        } else {
-          return {
-            authenticated: false,
-            redirectTo: "/login",
-            logout: true,
-          };
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        return {
-          authenticated: false,
-          redirectTo: "/login",
-          logout: true,
-        };
-      }
-    },
-    getPermissions: async () => null,
-    getIdentity: async () => {
-      if (user) {
-        return {
-          ...user,
-          avatar: user.picture,
-        };
-      }
-      return null;
-    },
-  };
+  const createProvider = authProvider(user, logout, getIdTokenClaims);
 
   return (
     <BrowserRouter
@@ -133,11 +71,8 @@ const App: React.FC = () => {
         <AntdApp>
           <Refine
             routerProvider={routerProvider}
-            authProvider={authProvider}
-            dataProvider={dataProvider(
-              "http://localhost:8080" + "/api/v1",
-              axios
-            )}
+            authProvider={createProvider}
+            dataProvider={dataProvider(BASE_URL_API_V1, axios)}
             resources={[
               {
                 name: "Invoicing",

@@ -114,8 +114,6 @@ export const ThemedSiderV2: React.FC<RefineThemedLayoutV2SiderProps> = ({
       const linkStyle: React.CSSProperties =
         activeItemDisabled && isSelected ? { pointerEvents: "none" } : {};
 
-      console.log(defaultOpenKeys);
-
       return (
         <CanAccess
           key={item.key}
