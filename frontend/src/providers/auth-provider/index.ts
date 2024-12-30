@@ -85,7 +85,7 @@ const handleUserCreationInDb = async (user: any) => {
         JSON.stringify({
           ...user,
           avatar: user.picture,
-          userid: data._id,
+          userId: data._id,
         })
       );
     }

@@ -1,86 +1,99 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Flex, Form, Upload, UploadFile, message, theme } from "antd";
 import { CloudUploadOutlined, PictureOutlined } from "@ant-design/icons";
 import type { RcFile, UploadChangeParam } from "antd/lib/upload";
-import { axiosInstance } from "@/providers/axios";
-import { API_URL, TOKEN_KEY } from "@/utils/constants";
-import type { Media, UploadResponse } from "@/types";
 import { useStyles } from "./styled";
+import { file2Base64 } from "@refinedev/core";
+import { getValueFromEvent } from "@refinedev/antd";
+const { Dragger } = Upload;
 
 type Props = {
   name?: string;
-  onFileChange?: (file: RcFile | null) => void;
+  onFileChange?: (file: string | null) => void;
 };
 
 export const FormItemUploadLogoDraggable = ({
   name = "logo",
   onFileChange,
 }: Props) => {
-  const [preview, setPreview] = useState<string | null>(null); // Preview URL
+  const [preview, setPreview] = useState<string | null>(null);
+  const [fileList, setFileList] = useState<any[]>([]);
 
-  const beforeUpload = (file: RcFile) => {
-    const isImage = file.type.startsWith("image/");
-    if (!isImage) {
-      message.error("You can only upload image files!");
+  const handleImageChange = async (info: UploadChangeParam) => {
+    const { fileList: newFileList } = info;
+    const latestFileList = newFileList.slice(-1); // Allow only one file in the list
+    setFileList(latestFileList);
+
+    // Ensure fileList has at least one file
+    if (latestFileList.length > 0) {
+      const file = latestFileList[0];
+      const originFileObj = file.originFileObj;
+
+      // Check if originFileObj is valid and is an instance of File
+      if (originFileObj && originFileObj instanceof File) {
+        try {
+          const base64String = await file2Base64(file);
+          setPreview(base64String);
+
+          if (onFileChange) {
+            onFileChange(base64String);
+          }
+        } catch (error) {
+          console.error("Error converting file to base64:", error);
+          message.error("Failed to convert the file to base64.");
+        }
+      } else {
+        console.error("Invalid file object:", originFileObj);
+        message.error("The selected file is invalid.");
+      }
+    } else {
+      // Clear preview and reset file list if no file
+      setPreview(null);
+      if (onFileChange) {
+        onFileChange(null);
+      }
     }
-    return isImage || Upload.LIST_IGNORE;
   };
 
   const { styles } = useStyles();
   const { token } = theme.useToken();
 
   const form = Form.useFormInstance();
-  const fieldValue = Form.useWatch(name, form) as string;
-
-  const src = useMemo(() => fieldValue || null, [fieldValue]);
-
-  const handleFileChange = (info: UploadChangeParam<UploadFile<any>>) => {
-    const uploadedFile = info.file.originFileObj as RcFile | undefined;
-    if (uploadedFile) {
-      setPreview(URL.createObjectURL(uploadedFile)); // Generate preview URL
-      onFileChange?.(uploadedFile); // Pass file back to parent
-    } else {
-      setPreview(null);
-      onFileChange?.(null); // Reset file
-    }
-  };
 
   return (
     <Flex gap={16} vertical>
       <div className={styles.container}>
         <Form.Item
           name="logo"
-          valuePropName="file"
-          // getValueProps={(data) => {
-          //   return getValueProps(data, API_URL);
-          // }}
+          valuePropName="fileList"
           noStyle
+          getValueFromEvent={getValueFromEvent}
         >
           <Upload.Dragger
-            name="files"
+            name="file"
             listType="picture"
             accept="image/*"
-            beforeUpload={beforeUpload}
+            beforeUpload={() => false}
             multiple={false}
             showUploadList={false}
             style={{
               padding: 0,
             }}
-            onChange={handleFileChange}
-            customRequest={() => {}}
+            onChange={handleImageChange}
+            fileList={fileList}
           >
-            {src && (
+            {preview && (
               <img
-                src={src}
+                src={preview}
                 alt="preview"
                 style={{
                   width: "148px",
                   height: "148px",
-                  objectFit: "cover",
+                  objectFit: "contain",
                 }}
               />
             )}
-            {!src && (
+            {!preview && (
               <PictureOutlined
                 style={{
                   fontSize: "48px",
@@ -94,6 +107,7 @@ export const FormItemUploadLogoDraggable = ({
       <Form.Item
         name="logo"
         valuePropName="fileList"
+        getValueFromEvent={getValueFromEvent}
         // getValueProps={(data) => {
         //   return getValueProps(data, API_URL);
         // }}
@@ -105,8 +119,9 @@ export const FormItemUploadLogoDraggable = ({
           accept="image/*"
           multiple={false}
           showUploadList={false}
-          onChange={handleFileChange}
-          customRequest={() => {}}
+          beforeUpload={() => false}
+          onChange={handleImageChange}
+          fileList={fileList}
         >
           <Button
             style={{

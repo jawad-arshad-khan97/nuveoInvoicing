@@ -1,7 +1,7 @@
 import type { UploadFile } from "antd";
 import type { UploadChangeParam } from "antd/lib/upload";
 
-export type UploadResponse = UploadChangeParam<UploadFile<Media[]>>;
+export type UploadResponse = UploadChangeParam<UploadFile>;
 
 export type AccountForm = {
   company_name: string;
@@ -10,8 +10,15 @@ export type AccountForm = {
   country: string;
   address: string;
   phone: string;
-  logo?: UploadResponse;
+  logo: string;
 };
+
+export interface Logo {
+  name: string;
+  url: string;
+  size: number;
+  uid: string;
+}
 
 export type Account = {
   id: number;

@@ -122,7 +122,7 @@ export const AccountsPageList = ({ children }: PropsWithChildren) => {
             )}
             render={(name: string, record: Account) => {
               const logoUrl = record?.logo;
-              const src = logoUrl ? `${API_URL}${logoUrl}` : undefined;
+              const src = logoUrl;
 
               return (
                 <Flex align="center" gap={8}>

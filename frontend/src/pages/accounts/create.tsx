@@ -1,28 +1,14 @@
-import { type HttpError, useGo } from "@refinedev/core";
+import { file2Base64, type HttpError, useGo } from "@refinedev/core";
 import { useForm } from "@refinedev/antd";
 import { Flex, Form, Input, Modal, Select } from "antd";
 import InputMask from "react-input-mask";
 import { FormItemUploadLogoDraggable } from "@/components/form";
-import type { Account, AccountForm } from "@/types";
-import { useState } from "react";
+import type { Account, AccountForm, User } from "@/types";
 
 export const AccountsPageCreate = () => {
   const go = useGo();
 
   const { formProps } = useForm<Account, HttpError, AccountForm>();
-  const [propertyImage, setPropertyImage] = useState({ name: "", url: "" });
-  const handleImageChange = (file: File) => {
-    const reader = (readFile: File) =>
-        new Promise<string>((resolve, reject) => {
-            const fileReader = new FileReader();
-            fileReader.onload = () => resolve(fileReader.result as string);
-            fileReader.readAsDataURL(readFile);
-        });
-
-    reader(file).then((result: string) =>
-        setPropertyImage({ name: file?.name, url: result }),
-    );
-};
 
   return (
     <Modal
@@ -40,16 +26,28 @@ export const AccountsPageCreate = () => {
         layout="vertical"
         id="create-account-form"
         {...formProps}
-        onFinish={(values) => {
-          const logoId = values.logo?.file?.response?.[0]?.id;
+        onFinish={async (values) => {
+          const base64Logo = await file2Base64(
+            values.logo[values.logo.length - 1]
+          );
+          const userData = localStorage.getItem("user");
+          let userId = "";
+          if (userData) {
+            const parsedUserData = JSON.parse(userData);
+            userId = parsedUserData.userId;
+          }
           return formProps.onFinish?.({
             ...values,
-            logo: logoId,
+            userId: userId,
+            logo: base64Logo,
           } as AccountForm);
         }}
       >
         <Flex gap={40}>
-          <FormItemUploadLogoDraggable />
+          <FormItemUploadLogoDraggable
+            name="logo"
+            onFileChange={(fileUrl) => fileUrl}
+          />
           <Flex
             vertical
             style={{

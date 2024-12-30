@@ -1,19 +1,16 @@
 import { useMemo, useState } from "react";
-import { Avatar, Form, Skeleton, Typography, Upload } from "antd";
-// import { getValueProps } from "@refinedev/strapi-v4";
+import { Avatar, Form, message, Skeleton, Typography, Upload } from "antd";
 import { CloudUploadOutlined } from "@ant-design/icons";
-import type { RcFile } from "antd/lib/upload";
-import { axiosInstance } from "@/providers/axios";
+import type { RcFile, UploadChangeParam } from "antd/lib/upload";
 import { getRandomColorFromString } from "@/utils/get-random-color";
-import { API_URL, TOKEN_KEY } from "@/utils/constants";
-import type { Media, UploadResponse } from "@/types";
 import { useStyles } from "./styled";
+import { file2Base64 } from "@refinedev/core";
 
 type Props = {
   label: string;
   formName?: string;
   isLoading?: boolean;
-  onUpload?: (params: UploadResponse) => void;
+  onUpload?: (params: string) => void;
 };
 
 export const FormItemUploadLogo = ({
@@ -23,62 +20,36 @@ export const FormItemUploadLogo = ({
   onUpload,
 }: Props) => {
   const { styles } = useStyles();
-
+  const [fileList, setFileList] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const form = Form.useFormInstance();
-  const fieldValue = Form.useWatch(formName, form) as Media | UploadResponse;
 
-  const src = useMemo(() => {
-    if (!fieldValue) return null;
+  const fieldValue = Form.useWatch(formName, form) as string;
+  console.log("fieldvalus:" + fieldValue);
 
-    if ("url" in fieldValue) {
-      return `${API_URL}${fieldValue?.url}`;
-    }
+  const src = useMemo(() => fieldValue || null, [fieldValue]);
 
-    if (fieldValue.file?.response?.[0]?.url) {
-      return `${API_URL}${fieldValue?.file?.response?.[0]?.url}`;
-    }
+  const handleImageChange = async (info: UploadChangeParam) => {
+    const { fileList: newFileList } = info;
+    const latestFileList = newFileList.slice(-1); // Only allow one file
+    setFileList(latestFileList);
 
-    return null;
-  }, [fieldValue]);
+    if (latestFileList.length > 0) {
+      const file = latestFileList[0]?.originFileObj;
 
-  const customRequest = async ({
-    file,
-    onSuccess,
-  }: {
-    file: string | RcFile | Blob;
-    onSuccess:
-      | ((body: any, xhr?: XMLHttpRequest | undefined) => void)
-      | undefined;
-  }) => {
-    const formData = new FormData();
-    formData.append("files", file);
-    form.setFields([{ name: name, errors: [] }]);
-
-    try {
-      const response = await axiosInstance.post(
-        `${API_URL}/api/upload`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}`,
-          },
-        },
-      );
-
-      onSuccess?.(response?.data, response?.request);
-    } catch (error: any) {
-      if (error.request.status === 0 || error.request.status === 413) {
-        form.setFields([{ name: name, errors: ["File is too large"] }]);
-        return;
+      if (file) {
+        try {
+          const base64String = await file2Base64(file as RcFile);
+          form.setFieldsValue({ [formName]: base64String }); // Update form field
+          onUpload?.(base64String); // Invoke the callback
+        } catch (err) {
+          console.error("Error converting file to base64:", err);
+          message.error("Failed to upload the file.");
+        }
+      } else {
+        message.error("Invalid file selected.");
       }
-
-      form.setFields([
-        { name: name, errors: [error?.message || "Something went wrong"] },
-      ]);
-
-      return;
     }
   };
 
@@ -86,10 +57,8 @@ export const FormItemUploadLogo = ({
     <div className={styles.container}>
       <Form.Item
         name={formName}
-        valuePropName="fileList"
-        // getValueProps={(data) => {
-        //   return getValueProps(data, API_URL);
-        // }}
+        valuePropName="src"
+        getValueFromEvent={(e) => e && e.fileList}
       >
         {isLoading && (
           <Skeleton.Avatar
@@ -106,17 +75,8 @@ export const FormItemUploadLogo = ({
             listType="picture"
             multiple={false}
             showUploadList={false}
-            onChange={(info) => {
-              if (info.file.status === "done") {
-                onUpload?.(info);
-              }
-            }}
-            customRequest={(options) => {
-              customRequest({
-                file: options.file,
-                onSuccess: options.onSuccess,
-              });
-            }}
+            onChange={handleImageChange}
+            fileList={fileList}
           >
             <Avatar
               key={src}
@@ -140,10 +100,10 @@ export const FormItemUploadLogo = ({
             </Avatar>
 
             <div className={styles.overlayContainer}>
-              <div className={styles.overlayIconContainer}>
-                <CloudUploadOutlined className={styles.overlayIcon} />
-              </div>
+              {/* <div className={styles.overlayIconContainer}> */}
+              <CloudUploadOutlined className={styles.overlayIcon} />
             </div>
+            {/* </div> */}
           </Upload>
         )}
       </Form.Item>

@@ -1,60 +1,88 @@
 import Account from "../mongodb/models/account.js";
 import User from "../mongodb/models/user.js";
-import Client from "../mongodb/models/client.js";
+import * as dotenv from "dotenv";
+import { v2 as cloudinary } from "cloudinary";
 
 import mongoose from "mongoose";
-import * as dotenv from "dotenv";
 dotenv.config();
 
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 const getAllAccounts = async (req, res) => {
-  const {
-    "pagination[page]": page = 1,
-    "pagination[pageSize]": pageSize = 10,
-    "populate[0]": populateLogo,
-    "populate[1]": populateClients,
-    "populate[2]": populateInvoices,
-    "filters[owner_email][$containsi]": ownerEmailFilter,
-    "filters[phone][$containsi]": phoneFilter,
-    sort = "updatedAt:desc",
-  } = req.query;
-
-  const query = {};
-  const options = {};
-
   try {
-    if (ownerEmailFilter) {
+    const query = {};
+    const options = { sort: {}, limit: 10, skip: 0 }; // Default options
+
+    // Pagination: Handle _start, _end, and pagination[pageSize], pagination[page]
+    const {
+      _start,
+      _end,
+      "pagination[page]": page,
+      "pagination[pageSize]": pageSize,
+    } = req.query;
+    if (_start) options.skip = parseInt(_start, 10);
+    if (_end) options.limit = parseInt(_end, 10) - options.skip;
+    if (page && pageSize) {
+      options.limit = parseInt(pageSize, 10);
+      options.skip = (parseInt(page, 10) - 1) * options.limit;
+    }
+
+    // Sorting: Handle _sort, _order, and sort (e.g., "field:order")
+    const { _sort = "updatedAt", _order = "desc", sort } = req.query;
+    if (sort) {
+      const [sortField, sortOrder] = sort.split(":");
+      options.sort[sortField] = sortOrder === "desc" ? -1 : 1;
+    } else if (_sort) {
+      options.sort[_sort] = _order === "desc" ? -1 : 1;
+    }
+
+    // Filters: Handle dynamic filter keys with _like or $containsi
+    const {
+      "filters[owner_email][$containsi]": ownerEmailFilter,
+      "filters[phone][$containsi]": phoneFilter,
+    } = req.query;
+    if (ownerEmailFilter)
       query.owner_email = { $regex: new RegExp(ownerEmailFilter, "i") };
-    }
-    if (phoneFilter) {
-      query.phone = { $regex: new RegExp(phoneFilter, "i") };
-    }
+    if (phoneFilter) query.phone = { $regex: new RegExp(phoneFilter, "i") };
+    Object.keys(req.query).forEach((key) => {
+      if (key.endsWith("_like")) {
+        const field = key.replace("_like", "");
+        query[field] = { $regex: new RegExp(req.query[key], "i") };
+      }
+    });
 
-    const [sortField, sortOrder] = sort.split(":");
-    options.sort = { [sortField]: sortOrder === "desc" ? -1 : 1 };
-
-    const limit = parseInt(pageSize, 10);
-    const skip = (parseInt(page, 10) - 1) * limit;
-
-    const count = await Account.countDocuments(query);
-
+    // Population: Handle populate parameters
     let queryBuilder = Account.find(query)
-      .limit(limit)
-      .skip(skip)
-      .sort(sortOption);
-
-    // if (populateLogo) queryBuilder = queryBuilder.populate("logo");
+      .limit(options.limit)
+      .skip(options.skip)
+      .sort(options.sort);
+    const {
+      "populate[0]": populateLogo,
+      "populate[1]": populateClients,
+      "populate[2]": populateInvoices,
+    } = req.query;
+    if (populateLogo) queryBuilder = queryBuilder.populate("logo");
     if (populateClients) queryBuilder = queryBuilder.populate("clients");
-    if (populateInvoices)
+    if (populateInvoices) {
       queryBuilder = queryBuilder.populate({
         path: "clients",
         populate: { path: "invoices" },
       });
+    }
 
+    // Total count for pagination
+    const totalCount = await Account.countDocuments(query);
+
+    // Execute query
     const accounts = await queryBuilder;
 
-    res.header("x-total-count", count);
+    // Respond with results and total count
+    res.header("x-total-count", totalCount);
     res.header("Access-Control-Expose-Headers", "x-total-count");
-
     res.status(200).json(accounts);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -63,7 +91,9 @@ const getAllAccounts = async (req, res) => {
 
 const getAccountDetail = async (req, res) => {
   const { id } = req.params;
-  const accountExists = await Account.findOne({ _id: id }).populate("client");
+  const accountExists = await Account.findOne({ id: id })
+    .populate("clients")
+    .populate("invoices");
   if (accountExists) {
     res.status(200).json(accountExists);
   } else {
@@ -73,12 +103,6 @@ const getAccountDetail = async (req, res) => {
 
 const createAccount = async (req, res) => {
   try {
-    const { data } = req.body;
-
-    if (!data) {
-      return res.status(400).json({ message: "Invalid request payload" });
-    }
-
     const {
       company_name,
       owner_name,
@@ -87,8 +111,9 @@ const createAccount = async (req, res) => {
       phone,
       country = "", // Optional default value for country
       logo = "", // Optional default value for logo
-      note = "", // Optional default value for note
-    } = data;
+      note = "",
+      userId = "", // Optional default value for note
+    } = req.body;
 
     if (!company_name || !owner_name || !owner_email || !address || !phone) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -96,6 +121,10 @@ const createAccount = async (req, res) => {
 
     const maxIdAccount = await Account.findOne().sort({ id: -1 }).select("id");
     const nextId = maxIdAccount ? maxIdAccount.id + 1 : 1;
+
+    const photoUrl = await cloudinary.uploader.upload(logo, {
+      folder: "InvoiceManagement",
+    });
 
     // Prepare the account data
     const newAccount = new Account({
@@ -106,9 +135,9 @@ const createAccount = async (req, res) => {
       address,
       phone,
       country,
-      logo,
+      logo: photoUrl.url,
       note,
-      creator: req.user?.id || null, // Assuming `req.user.id` is set for authenticated users
+      creator: userId, // Assuming `req.user.id` is set for authenticated users
     });
 
     // Save the account to the database
@@ -226,6 +255,17 @@ const deleteAccount = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+const fileToBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const chunks = [];
+    file.stream.on("data", (chunk) => chunks.push(chunk));
+    file.stream.on("end", () => {
+      const buffer = Buffer.concat(chunks);
+      resolve(buffer.toString("base64"));
+    });
+    file.stream.on("error", (err) => reject(err));
+  });
 
 export {
   getAllAccounts,
