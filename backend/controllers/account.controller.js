@@ -43,10 +43,16 @@ const getAllAccounts = async (req, res) => {
     // Filters: Handle dynamic filter keys with _like or $containsi
     const {
       "filters[owner_email][$containsi]": ownerEmailFilter,
+      "filters[owner_name][$containsi]": ownerNameFilter,
+      "filters[company_name][$containsi]": companyNameFilter,
       "filters[phone][$containsi]": phoneFilter,
     } = req.query;
     if (ownerEmailFilter)
       query.owner_email = { $regex: new RegExp(ownerEmailFilter, "i") };
+    if (ownerNameFilter)
+      query.owner_email = { $regex: new RegExp(ownerNameFilter, "i") };
+    if (companyNameFilter)
+      query.owner_email = { $regex: new RegExp(companyNameFilter, "i") };
     if (phoneFilter) query.phone = { $regex: new RegExp(phoneFilter, "i") };
     Object.keys(req.query).forEach((key) => {
       if (key.endsWith("_like")) {
@@ -54,6 +60,17 @@ const getAllAccounts = async (req, res) => {
         query[field] = { $regex: new RegExp(req.query[key], "i") };
       }
     });
+
+    const { id, company_name, owner_name } = req.query;
+    if (id) {
+      query.id = { $regex: new RegExp(`^${id}$`, "i") };
+    }
+    if (company_name) {
+      query.company_name = { $regex: new RegExp(`^${company_name}$`, "i") }; // Exact match for title, case-insensitive
+    }
+    if (owner_name) {
+      query.owner_name = { $regex: new RegExp(`^${owner_name}$`, "i") }; // Partial match for owner, case-insensitive
+    }
 
     // Population: Handle populate parameters
     let queryBuilder = Account.find(query)
@@ -157,21 +174,7 @@ const createAccount = async (req, res) => {
 
 const updateAccount = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { data } = req.body;
-
-    if (!id || !data) {
-      return res
-        .status(400)
-        .json({ message: "Invalid request parameters or payload" });
-    }
-
-    const existingAccount = await Account.findById(id);
-
-    if (!existingAccount) {
-      return res.status(404).json({ message: "Account not found" });
-    }
-
+    const { id } = req.params; // Account ID from the URL params
     const {
       company_name,
       owner_name,
@@ -181,47 +184,58 @@ const updateAccount = async (req, res) => {
       country,
       logo,
       note,
-    } = data;
+      userId,
+    } = req.body;
 
-    // Prepare update object
-    const updateFields = {};
-    if (company_name) updateFields.company_name = company_name;
-    if (owner_name) updateFields.owner_name = owner_name;
-    if (owner_email) updateFields.owner_email = owner_email;
-    if (address) updateFields.address = address;
-    if (phone) updateFields.phone = phone;
-    if (country) updateFields.country = country;
-    if (logo) updateFields.logo = logo;
-    if (note) updateFields.note = note;
-
-    updateFields.updatedDate = new Date();
-
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    const user = await User.findOne({ userEmail }).session(session);
-    if (!user) throw new Error("User not found");
-
-    const updatedAccount = await Account.findByIdAndUpdate(
-      id,
-      { $set: updateFields, updatedDate: new Date() }, // Include updatedDate as part of the update
-      { new: true, session } // Return the updated document
-    );
-
-    if (!updatedAccount) {
-      throw new Error("Account not found");
+    const account = await Account.findOne({ id: id });
+    if (!account) {
+      return res.status(404).json({ message: "Account not found" });
     }
 
-    await session.commitTransaction();
-    session.endSession();
+    const _id = account._id;
+
+    const updatedFields = {};
+
+    if (logo && !logo.startsWith("http")) {
+      // If `logo` is not a URL, assume it's a new base64 string
+      if (account.logo) {
+        const publicId = account.logo.split("/").pop().split(".")[0]; // Extract the public ID from the URL
+        if (publicId) {
+          await cloudinary.uploader.destroy(`InvoiceManagement/${publicId}`); // Delete the old image
+        }
+      }
+
+      // Upload the new image
+      const photoUrl = await cloudinary.uploader.upload(logo, {
+        folder: "InvoiceManagement",
+      });
+      updatedFields.logo = photoUrl.url;
+    } else if (logo) {
+      // If `logo` is a URL, keep it as-is
+      updatedFields.logo = logo;
+    }
+
+    // Add other fields to `updatedFields` if they are provided
+    if (company_name) updatedFields.company_name = company_name;
+    if (owner_name) updatedFields.owner_name = owner_name;
+    if (owner_email) updatedFields.owner_email = owner_email;
+    if (address) updatedFields.address = address;
+    if (phone) updatedFields.phone = phone;
+    if (country) updatedFields.country = country;
+    if (note) updatedFields.note = note;
+    if (userId) updatedFields.creator = userId;
+
+    // Update the account with the modified fields
+    const updatedAccount = await Account.findByIdAndUpdate(
+      _id,
+      { $set: updatedFields },
+      { new: true, runValidators: true } // Return the updated document and run validations
+    );
 
     res
       .status(200)
       .json({ message: "Account updated successfully", data: updatedAccount });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-
     if (error.code === 11000) {
       return res.status(409).json({ message: "Owner email already exists" });
     }
@@ -255,17 +269,6 @@ const deleteAccount = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-const fileToBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const chunks = [];
-    file.stream.on("data", (chunk) => chunks.push(chunk));
-    file.stream.on("end", () => {
-      const buffer = Buffer.concat(chunks);
-      resolve(buffer.toString("base64"));
-    });
-    file.stream.on("error", (err) => reject(err));
-  });
 
 export {
   getAllAccounts,

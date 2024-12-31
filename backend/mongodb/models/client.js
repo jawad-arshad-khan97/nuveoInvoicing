@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const ClientSchema = new mongoose.Schema({
-  id: { type: Number, required: true, unique: true },
+  id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   owner_name: { type: String, required: true },
   owner_email: { type: String, required: true, unique: true },

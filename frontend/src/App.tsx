@@ -72,7 +72,7 @@ const App: React.FC = () => {
           <Refine
             routerProvider={routerProvider}
             authProvider={createProvider}
-            dataProvider={dataProvider(BASE_URL_API_V1, axios)}
+            dataProvider={dataProvider(BASE_URL_API_V1)}
             resources={[
               {
                 name: "Invoicing",

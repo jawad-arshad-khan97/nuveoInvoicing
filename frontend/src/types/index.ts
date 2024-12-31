@@ -21,7 +21,7 @@ export interface Logo {
 }
 
 export type Account = {
-  id: number;
+  id: string;
   createdDate: string;
   updatedDate: string;
   logo?: string;
@@ -30,7 +30,7 @@ export type Account = {
 } & Omit<AccountForm, "logo">;
 
 export type Client = {
-  id: number;
+  id: string;
   name: string;
   owner_name: string;
   owner_email: string;
@@ -44,7 +44,7 @@ export type Client = {
 };
 
 export type Invoice = {
-  id: number;
+  id: string;
   name: string;
   invoiceDate: string;
   discount: number;
@@ -72,7 +72,7 @@ export type Service = {
 };
 
 export type User = {
-  id: number;
+  id: string;
   name: string;
   email: string;
   avatar: string;
@@ -86,7 +86,7 @@ export type User = {
 };
 
 export type Media = {
-  id: number;
+  id: string;
   name: string;
   alternativeText: any;
   caption: any;

@@ -5,6 +5,8 @@ import type { RcFile, UploadChangeParam } from "antd/lib/upload";
 import { getRandomColorFromString } from "@/utils/get-random-color";
 import { useStyles } from "./styled";
 import { file2Base64 } from "@refinedev/core";
+import { useApiUrl } from "@refinedev/core";
+import { useParams } from "react-router-dom";
 
 type Props = {
   label: string;
@@ -22,11 +24,12 @@ export const FormItemUploadLogo = ({
   const { styles } = useStyles();
   const [fileList, setFileList] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const apiUrl = useApiUrl();
+  const { id } = useParams();
 
   const form = Form.useFormInstance();
 
   const fieldValue = Form.useWatch(formName, form) as string;
-  console.log("fieldvalus:" + fieldValue);
 
   const src = useMemo(() => fieldValue || null, [fieldValue]);
 
@@ -40,7 +43,7 @@ export const FormItemUploadLogo = ({
 
       if (file) {
         try {
-          const base64String = await file2Base64(file as RcFile);
+          const base64String = await file2Base64(latestFileList[0]);
           form.setFieldsValue({ [formName]: base64String }); // Update form field
           onUpload?.(base64String); // Invoke the callback
         } catch (err) {
@@ -77,6 +80,8 @@ export const FormItemUploadLogo = ({
             showUploadList={false}
             onChange={handleImageChange}
             fileList={fileList}
+            beforeUpload={() => false} // Prevent automatic upload
+            customRequest={() => {}}
           >
             <Avatar
               key={src}

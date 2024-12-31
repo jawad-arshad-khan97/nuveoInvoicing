@@ -64,9 +64,9 @@ export const AccountsPageEdit = () => {
       <Form
         {...formProps}
         onFinish={async (values) => {
-          const base64Logo = await file2Base64(
-            values.logo[values.logo.length - 1]
-          );
+          // const base64Logo = await file2Base64(
+          //   values.logo[values.logo.length - 1]
+          // );
           const userData = localStorage.getItem("user");
           let userId = "";
           if (userData) {
@@ -76,7 +76,7 @@ export const AccountsPageEdit = () => {
           return formProps.onFinish?.({
             ...values,
             userId: userId,
-            logo: base64Logo,
+            // logo: base64Logo,
           } as AccountForm);
         }}
         layout="vertical"
@@ -87,7 +87,9 @@ export const AccountsPageEdit = () => {
               <FormItemUploadLogo
                 isLoading={isLoading}
                 label={account?.company_name || " "}
-                onUpload={(fileUrl) => fileUrl}
+                onUpload={() => {
+                  formProps.form?.submit();
+                }}
               />
               <FormItemEditableText
                 loading={isLoading}

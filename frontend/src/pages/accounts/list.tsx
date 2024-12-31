@@ -204,6 +204,7 @@ export const AccountsPageList = ({ children }: PropsWithChildren) => {
             title="Income"
             dataIndex="income"
             key="income"
+            sorter
             width={120}
             align="end"
             render={(_, record: Account) => {
