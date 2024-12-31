@@ -28,7 +28,7 @@ import {
 import type { Account, AccountForm } from "@/types";
 
 export const AccountsPageEdit = () => {
-  const { listUrl } = useNavigation();
+  const { listUrl, list } = useNavigation();
 
   const { formProps, query: queryResult } = useForm<
     Account,
@@ -44,6 +44,13 @@ export const AccountsPageEdit = () => {
   const clients = account?.clients || [];
   const invoices = account?.invoices || [];
   const isLoading = queryResult?.isLoading;
+
+  const userData = localStorage.getItem("user");
+  let userId = "";
+  if (userData) {
+    const parsedUserData = JSON.parse(userData);
+    userId = parsedUserData.userId;
+  }
 
   return (
     <Show
@@ -64,15 +71,6 @@ export const AccountsPageEdit = () => {
       <Form
         {...formProps}
         onFinish={async (values) => {
-          // const base64Logo = await file2Base64(
-          //   values.logo[values.logo.length - 1]
-          // );
-          const userData = localStorage.getItem("user");
-          let userId = "";
-          if (userData) {
-            const parsedUserData = JSON.parse(userData);
-            userId = parsedUserData.userId;
-          }
           return formProps.onFinish?.({
             ...values,
             userId: userId,
@@ -169,7 +167,7 @@ export const AccountsPageEdit = () => {
                 marginTop: "16px",
               }}
               onSuccess={() => {
-                listUrl("clients");
+                window.location.href = listUrl("accounts");
               }}
             >
               Delete account

@@ -1,4 +1,6 @@
 import Account from "../mongodb/models/account.js";
+import Client from "../mongodb/models/client.js";
+import Invoice from "../mongodb/models/invoice.js";
 import User from "../mongodb/models/user.js";
 import * as dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
@@ -139,9 +141,13 @@ const createAccount = async (req, res) => {
     const maxIdAccount = await Account.findOne().sort({ id: -1 }).select("id");
     const nextId = maxIdAccount ? maxIdAccount.id + 1 : 1;
 
-    const photoUrl = await cloudinary.uploader.upload(logo, {
-      folder: "InvoiceManagement",
-    });
+    let photoUrl = "";
+
+    if (logo) {
+      photoUrl = await cloudinary.uploader.upload(logo, {
+        folder: "InvoiceManagement",
+      });
+    }
 
     // Prepare the account data
     const newAccount = new Account({
@@ -152,7 +158,7 @@ const createAccount = async (req, res) => {
       address,
       phone,
       country,
-      logo: photoUrl.url,
+      logo: photoUrl?.url,
       note,
       creator: userId, // Assuming `req.user.id` is set for authenticated users
     });
@@ -186,6 +192,11 @@ const updateAccount = async (req, res) => {
       note,
       userId,
     } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found" });
+    }
 
     const account = await Account.findOne({ id: id });
     if (!account) {
@@ -244,28 +255,46 @@ const updateAccount = async (req, res) => {
 };
 
 const deleteAccount = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
-    if (!id) {
-      return res.status(400).json({ message: "Account ID is required" });
-    }
-    const accountToDelete = await Account.findById({ id: id }).populate(
-      "client"
-    );
-    if (!accountToDelete) throw new Error("Account not found");
-    const session = await mongoose.startSession();
-    session.startTransaction();
 
-    if (accountToDelete.client) {
-      accountToDelete.client.account.pull(accountToDelete);
-      await accountToDelete.client.save({ session });
+    // Fetch the account by ID
+    const account = await Account.findOne({ id }).session(session);
+
+    if (!account) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: "Account not found" });
     }
 
-    await Account.deleteOne({ id: id }, { session });
+    // Delete the logo from Cloudinary if it exists
+    if (account.logo) {
+      const publicId = account.logo.split("/").pop().split(".")[0]; // Extract public ID
+      await cloudinary.uploader.destroy(`InvoiceManagement/${publicId}`);
+    }
 
+    // Delete associated clients linked to this account
+    await Client.deleteMany({ accountId: account.id }).session(session);
+
+    // Delete associated invoices linked to this account
+    await Invoice.deleteMany({ accountId: account.id }).session(session);
+
+    // Delete the account itself
+    await Account.deleteOne({ id }).session(session);
+
+    // Commit the transaction
     await session.commitTransaction();
-    res.status(200).json({ message: "Account deleted successfully" });
+    session.endSession();
+
+    res
+      .status(200)
+      .json({ message: "Account and related resources deleted successfully" });
   } catch (error) {
+    // Rollback transaction in case of error
+    await session.abortTransaction();
+    session.endSession();
     res.status(500).json({ message: error.message });
   }
 };

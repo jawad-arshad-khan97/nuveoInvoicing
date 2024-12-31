@@ -8,7 +8,7 @@ import type { Account, AccountForm, User } from "@/types";
 export const AccountsPageCreate = () => {
   const go = useGo();
 
-  const { formProps } = useForm<Account, HttpError, AccountForm>();
+  const { formProps, formLoading } = useForm<Account, HttpError, AccountForm>();
 
   return (
     <Modal
@@ -27,9 +27,11 @@ export const AccountsPageCreate = () => {
         id="create-account-form"
         {...formProps}
         onFinish={async (values) => {
-          const base64Logo = await file2Base64(
-            values.logo[values.logo.length - 1]
-          );
+          let base64Logo = "";
+          if (values.logo) {
+            base64Logo = await file2Base64(values.logo[values.logo.length - 1]);
+          }
+
           const userData = localStorage.getItem("user");
           let userId = "";
           if (userData) {
