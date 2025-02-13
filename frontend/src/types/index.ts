@@ -40,7 +40,8 @@ export type Client = {
   createdDate: string;
   updatedDate: string;
   invoices?: Invoice[];
-  account?: Account;
+  account: Account;
+  userId:string;
 };
 
 export type Invoice = {

@@ -1,59 +1,85 @@
 import Client from "../mongodb/models/client.js";
+import Invoice from "../mongodb/models/invoice.js";
 import User from "../mongodb/models/user.js";
-import File from "../mongodb/models/file.js";
-
 import mongoose from "mongoose";
-import * as dotenv from "dotenv";
-import { v2 as cloudinary } from "cloudinary";
-import { deleteFileById } from "../middleware/deleteFiles.js";
-
-dotenv.config();
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 const getAllClients = async (req, res) => {
-  const {
-    _end,
-    _order = "asc",
-    _start,
-    _sort = "name",
-    q,
-    createdAt_gte,
-    createdAt_lte,
-  } = req.query;
-
-  const query = {};
-
   try {
-    if (q) {
-      query.$or = [
-        { name: { $regex: new RegExp(q, "i") } },
-        { email: { $regex: new RegExp(q, "i") } },
-      ];
+    const query = {};
+    const options = { sort: {}, limit: 10, skip: 0 };
+
+    const {
+      _start,
+      _end,
+      "pagination[page]": page,
+      "pagination[pageSize]": pageSize,
+    } = req.query;
+    if (_start) options.skip = parseInt(_start, 10);
+    if (_end) options.limit = parseInt(_end, 10) - options.skip;
+    if (page && pageSize) {
+      options.limit = parseInt(pageSize, 10);
+      options.skip = (parseInt(page, 10) - 1) * options.limit;
     }
 
-    if (createdAt_gte || createdAt_lte) {
-      query.createdDate = {
-        $gte: new Date(createdAt_gte),
-        $lte: new Date(createdAt_lte),
-      };
+    const { _sort = "updatedAt", _order = "desc", sort } = req.query;
+    if (sort) {
+      const [sortField, sortOrder] = sort.split(":");
+      options.sort[sortField] = sortOrder === "desc" ? -1 : 1;
+    } else if (_sort) {
+      options.sort[_sort] = _order === "desc" ? -1 : 1;
     }
 
-    const count = await Client.countDocuments({ query });
+    const {
+      "filters[owner_email][$containsi]": ownerEmailFilter,
+      "filters[owner_name][$containsi]": ownerNameFilter,
+      "filters[name][$containsi]": nameFilter,
+      "filters[phone][$containsi]": phoneFilter,
+    } = req.query;
+    if (ownerEmailFilter)
+      query.owner_email = { $regex: new RegExp(ownerEmailFilter, "i") };
+    if (ownerNameFilter)
+      query.owner_name = { $regex: new RegExp(ownerNameFilter, "i") };
+    if (nameFilter) query.name = { $regex: new RegExp(nameFilter, "i") };
+    if (phoneFilter) query.phone = { $regex: new RegExp(phoneFilter, "i") };
+    Object.keys(req.query).forEach((key) => {
+      if (key.endsWith("_like")) {
+        const field = key.replace("_like", "");
+        query[field] = { $regex: new RegExp(req.query[key], "i") };
+      }
+    });
 
-    const clients = await Client.find(query)
-      .limit(_end)
-      .skip(_start)
-      .sort({ [_sort]: _order })
-      .populate("logo");
+    const { id, name, owner_name } = req.query;
+    if (id) {
+      query.id = { $regex: new RegExp(`^${id}$`, "i") };
+    }
+    // if (name) {
+    //   query.name = { $regex: new RegExp(`^${name}$`, "i") }; // Exact match for title, case-insensitive
+    // }
+    // if (owner_name) {
+    //   query.owner_name = { $regex: new RegExp(`^${owner_name}$`, "i") }; // Partial match for owner, case-insensitive
+    // }
+    // if (owner_email) {
+    //   query.owner_email = { $regex: new RegExp(`^${owner_email}$`, "i") }; // Partial match for owner, case-insensitive
+    // }
 
-    res.header("x-total-count", count);
+    let queryBuilder = Client.find(query)
+      .limit(options.limit)
+      .skip(options.skip)
+      .sort(options.sort);
+    const { "populate[2]": populateInvoices } = req.query;
+    if (populateInvoices) {
+      queryBuilder = queryBuilder.populate({
+        // path: "clients",
+        populate: { path: "invoices" },
+      });
+    }
+
+    const totalCount = await Client.countDocuments(query);
+
+    const clients = await queryBuilder;
+
+    res.header("x-total-count", totalCount);
     res.header("Access-Control-Expose-Headers", "x-total-count");
-
     res.status(200).json(clients);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -62,7 +88,9 @@ const getAllClients = async (req, res) => {
 
 const getClientDetail = async (req, res) => {
   const { id } = req.params;
-  const clientExists = await Client.findOne({ _id: id }).populate("logo");
+  const clientExists = await Client.findOne({ id: id })
+    .populate("clients")
+    .populate("invoices");
   if (clientExists) {
     res.status(200).json(clientExists);
   } else {
@@ -72,34 +100,45 @@ const getClientDetail = async (req, res) => {
 
 const createClient = async (req, res) => {
   try {
-    const { name, email, userEmail, address, city, country, website, logo } =
-      req.body;
-
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    const user = await User.findOne({ userEmail }).session(session);
-
-    if (!user) throw new Error("User not found");
-
-    const newClient = await Client.create({
-      name,
-      email,
+    const {
+      account,
+      owner_email,
+      owner_name,
       address,
-      city,
-      country,
-      website,
-      logo: logo._id,
-      creator: user._id,
+      phone,
+      name = "",
+      userId = "",
+    } = req.body;
+
+    if (!owner_name || !owner_name || !owner_email || !address || !phone) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const maxIdClient = await Client.findOne().sort({ id: -1 }).select("id");
+    const nextId = maxIdClient ? parseInt(maxIdClient.id) + 1 : 1;
+
+    let photoUrl = "";
+
+    const newClient = new Client({
+      id: nextId,
+      owner_name,
+      owner_email,
+      account,
+      address,
+      phone,
+      name,
+      creator: userId,
     });
 
-    user.allClients.push(newClient._id);
-    await user.save({ session });
+    const savedClient = await newClient.save();
 
-    await session.commitTransaction();
-
-    res.status(200).json({ message: "Client created successfully" });
+    res
+      .status(201)
+      .json({ message: "Client created successfully", data: savedClient });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "Owner email already exists" });
+    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -107,62 +146,75 @@ const createClient = async (req, res) => {
 const updateClient = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, address, city, country, website, logo } = req.body;
+    const { name, owner_name, owner_email, address, phone, account, userId } =
+      req.body;
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    const curLogo = await Client.findById(id).populate("logo").session(session);
-    const curLogoId = curLogo.logo._id;
-
-    if (logo?._id) {
-      // Assuming File model has a method to delete the file by its ID
-      await deleteFileById(curLogoId, session);
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found" });
     }
 
-    const currentDate = new Date();
+    const client = await Client.findOne({ id: id });
+    if (!client) {
+      return res.status(404).json({ message: "Client not found" });
+    }
 
-    await Client.findByIdAndUpdate(
-      { _id: id },
-      {
-        name,
-        email,
-        address,
-        city,
-        country,
-        website,
-        updatedDate: currentDate,
-        logo: logo?._id,
-      }
+    const _id = client._id;
+
+    const updatedFields = {};
+
+    if (name) updatedFields.name = name;
+    if (owner_name) updatedFields.owner_name = owner_name;
+    if (owner_email) updatedFields.owner_email = owner_email;
+    if (address) updatedFields.address = address;
+    if (phone) updatedFields.phone = phone;
+    if (account) updatedFields.account = account;
+    if (userId) updatedFields.creator = userId;
+
+    const updatedClient = await Client.findByIdAndUpdate(
+      _id,
+      { $set: updatedFields },
+      { new: true, runValidators: true } // Return the updated document and run validations
     );
-    res.status(200).json({ message: "Client updated successfully" });
+
+    res
+      .status(200)
+      .json({ message: "Client updated successfully", data: updatedClient });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "Owner email already exists" });
+    }
     res.status(500).json({ message: error.message });
   }
 };
 
 const deleteClient = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
-    const clientToDelete = await Client.findById({ _id: id }).populate(
-      "creator"
-    );
-    if (!clientToDelete) throw new Error("Client not found");
-    const session = await mongoose.startSession();
-    session.startTransaction();
 
-    if (clientToDelete.logo) {
-      // Assuming File model has a method to delete the file by its ID
-      await deleteFileById(clientToDelete.logo._id, session);
+    const client = await Client.findOne({ id }).session(session);
+
+    if (!client) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: "Client not found" });
     }
 
-    await Client.deleteOne({ _id: id }, { session });
+    await Invoice.deleteMany({ clientId: client.id }).session(session);
 
-    clientToDelete.creator.allClients.pull(clientToDelete);
-    await clientToDelete.creator.save({ session });
+    await Client.deleteOne({ id }).session(session);
+
     await session.commitTransaction();
-    res.status(200).json({ message: "Client deleted successfully" });
+    session.endSession();
+
+    res
+      .status(200)
+      .json({ message: "Client and related resources deleted successfully" });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(500).json({ message: error.message });
   }
 };

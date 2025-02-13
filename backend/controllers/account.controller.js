@@ -17,9 +17,8 @@ cloudinary.config({
 const getAllAccounts = async (req, res) => {
   try {
     const query = {};
-    const options = { sort: {}, limit: 10, skip: 0 }; // Default options
+    const options = { sort: {}, limit: 10, skip: 0 };
 
-    // Pagination: Handle _start, _end, and pagination[pageSize], pagination[page]
     const {
       _start,
       _end,
@@ -33,7 +32,6 @@ const getAllAccounts = async (req, res) => {
       options.skip = (parseInt(page, 10) - 1) * options.limit;
     }
 
-    // Sorting: Handle _sort, _order, and sort (e.g., "field:order")
     const { _sort = "updatedAt", _order = "desc", sort } = req.query;
     if (sort) {
       const [sortField, sortOrder] = sort.split(":");
@@ -42,7 +40,6 @@ const getAllAccounts = async (req, res) => {
       options.sort[_sort] = _order === "desc" ? -1 : 1;
     }
 
-    // Filters: Handle dynamic filter keys with _like or $containsi
     const {
       "filters[owner_email][$containsi]": ownerEmailFilter,
       "filters[owner_name][$containsi]": ownerNameFilter,
@@ -52,9 +49,9 @@ const getAllAccounts = async (req, res) => {
     if (ownerEmailFilter)
       query.owner_email = { $regex: new RegExp(ownerEmailFilter, "i") };
     if (ownerNameFilter)
-      query.owner_email = { $regex: new RegExp(ownerNameFilter, "i") };
+      query.owner_name = { $regex: new RegExp(ownerNameFilter, "i") };
     if (companyNameFilter)
-      query.owner_email = { $regex: new RegExp(companyNameFilter, "i") };
+      query.company_name = { $regex: new RegExp(companyNameFilter, "i") };
     if (phoneFilter) query.phone = { $regex: new RegExp(phoneFilter, "i") };
     Object.keys(req.query).forEach((key) => {
       if (key.endsWith("_like")) {
@@ -92,8 +89,6 @@ const getAllAccounts = async (req, res) => {
         populate: { path: "invoices" },
       });
     }
-
-    // Total count for pagination
     const totalCount = await Account.countDocuments(query);
 
     // Execute query
@@ -128,10 +123,10 @@ const createAccount = async (req, res) => {
       owner_email,
       address,
       phone,
-      country = "", // Optional default value for country
-      logo = "", // Optional default value for logo
+      country = "",
+      logo = "",
       note = "",
-      userId = "", // Optional default value for note
+      userId = "",
     } = req.body;
 
     if (!company_name || !owner_name || !owner_email || !address || !phone) {
@@ -139,7 +134,7 @@ const createAccount = async (req, res) => {
     }
 
     const maxIdAccount = await Account.findOne().sort({ id: -1 }).select("id");
-    const nextId = maxIdAccount ? maxIdAccount.id + 1 : 1;
+    const nextId = maxIdAccount ? parseInt(maxIdAccount.id) + 1 : 1;
 
     let photoUrl = "";
 
@@ -149,7 +144,6 @@ const createAccount = async (req, res) => {
       });
     }
 
-    // Prepare the account data
     const newAccount = new Account({
       id: nextId,
       company_name,
@@ -160,13 +154,11 @@ const createAccount = async (req, res) => {
       country,
       logo: photoUrl?.url,
       note,
-      creator: userId, // Assuming `req.user.id` is set for authenticated users
+      creator: userId,
     });
 
-    // Save the account to the database
     const savedAccount = await newAccount.save();
 
-    // Respond with the saved account
     res
       .status(201)
       .json({ message: "Account created successfully", data: savedAccount });
@@ -180,7 +172,7 @@ const createAccount = async (req, res) => {
 
 const updateAccount = async (req, res) => {
   try {
-    const { id } = req.params; // Account ID from the URL params
+    const { id } = req.params;
     const {
       company_name,
       owner_name,
@@ -236,7 +228,6 @@ const updateAccount = async (req, res) => {
     if (note) updatedFields.note = note;
     if (userId) updatedFields.creator = userId;
 
-    // Update the account with the modified fields
     const updatedAccount = await Account.findByIdAndUpdate(
       _id,
       { $set: updatedFields },
@@ -261,7 +252,6 @@ const deleteAccount = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Fetch the account by ID
     const account = await Account.findOne({ id }).session(session);
 
     if (!account) {
@@ -269,22 +259,17 @@ const deleteAccount = async (req, res) => {
       return res.status(404).json({ message: "Account not found" });
     }
 
-    // Delete the logo from Cloudinary if it exists
     if (account.logo) {
       const publicId = account.logo.split("/").pop().split(".")[0]; // Extract public ID
       await cloudinary.uploader.destroy(`InvoiceManagement/${publicId}`);
     }
 
-    // Delete associated clients linked to this account
     await Client.deleteMany({ accountId: account.id }).session(session);
 
-    // Delete associated invoices linked to this account
     await Invoice.deleteMany({ accountId: account.id }).session(session);
 
-    // Delete the account itself
     await Account.deleteOne({ id }).session(session);
 
-    // Commit the transaction
     await session.commitTransaction();
     session.endSession();
 
@@ -292,7 +277,6 @@ const deleteAccount = async (req, res) => {
       .status(200)
       .json({ message: "Account and related resources deleted successfully" });
   } catch (error) {
-    // Rollback transaction in case of error
     await session.abortTransaction();
     session.endSession();
     res.status(500).json({ message: error.message });

@@ -1,18 +1,33 @@
-import { useGo } from "@refinedev/core";
+import { useGo, useOne } from "@refinedev/core";
 import { useForm, useSelect } from "@refinedev/antd";
 import { Flex, Form, Input, Modal, Select } from "antd";
 import InputMask from "react-input-mask";
+import type { Client } from "@/types";
 
 export const ClientsPageCreate = () => {
   const go = useGo();
 
-  const { formProps } = useForm();
+  const { formProps } = useForm<Client>();
+
+  const getAccountData = async (accountId: string) => {
+    return await useOne({
+      resource: "accounts",
+      id: accountId,
+    });
+  };
 
   const { selectProps: selectPropsAccount } = useSelect({
     resource: "accounts",
     optionLabel: "company_name",
-    optionValue: "id",
+    optionValue: "_id",
   });
+
+  const userData = localStorage.getItem("user");
+  let userId = "";
+  if (userData) {
+    const parsedUserData = JSON.parse(userData);
+    userId = parsedUserData.userId;
+  }
 
   return (
     <Modal
@@ -26,7 +41,20 @@ export const ClientsPageCreate = () => {
         });
       }}
     >
-      <Form layout="vertical" id="create-client-form" {...formProps}>
+      <Form
+        layout="vertical"
+        id="create-client-form"
+        {...formProps}
+        onFinish={async (values) => {
+          userId;
+          console.log(values);
+
+          return formProps.onFinish?.({
+            ...values,
+            userId: userId,
+          });
+        }}
+      >
         <Flex
           vertical
           style={{

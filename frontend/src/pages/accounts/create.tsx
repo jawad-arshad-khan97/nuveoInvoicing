@@ -9,6 +9,12 @@ export const AccountsPageCreate = () => {
   const go = useGo();
 
   const { formProps, formLoading } = useForm<Account, HttpError, AccountForm>();
+  const userData = localStorage.getItem("user");
+  let userId = "";
+  if (userData) {
+    const parsedUserData = JSON.parse(userData);
+    userId = parsedUserData.userId;
+  }
 
   return (
     <Modal
@@ -31,13 +37,8 @@ export const AccountsPageCreate = () => {
           if (values.logo) {
             base64Logo = await file2Base64(values.logo[values.logo.length - 1]);
           }
+          userId;
 
-          const userData = localStorage.getItem("user");
-          let userId = "";
-          if (userData) {
-            const parsedUserData = JSON.parse(userData);
-            userId = parsedUserData.userId;
-          }
           return formProps.onFinish?.({
             ...values,
             userId: userId,

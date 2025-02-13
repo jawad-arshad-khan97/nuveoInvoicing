@@ -28,7 +28,7 @@ import {
 import type { Account, AccountForm } from "@/types";
 
 export const AccountsPageEdit = () => {
-  const { listUrl, list } = useNavigation();
+  const { listUrl } = useNavigation();
 
   const { formProps, query: queryResult } = useForm<
     Account,
