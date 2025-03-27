@@ -49,18 +49,29 @@ const getAllClients = async (req, res) => {
       }
     });
 
+    const { ["account.company_name"]: accountCompanyName } = req.query;
+
     const { id, name, owner_name } = req.query;
     if (id) {
       query.id = { $regex: new RegExp(`^${id}$`, "i") };
     }
-    // if (name) {
-    //   query.name = { $regex: new RegExp(`^${name}$`, "i") }; // Exact match for title, case-insensitive
-    // }
-    // if (owner_name) {
-    //   query.owner_name = { $regex: new RegExp(`^${owner_name}$`, "i") }; // Partial match for owner, case-insensitive
-    // }
+    if (name) {
+      query.name = { $regex: new RegExp(`^${name}$`, "i") }; // Exact match for title, case-insensitive
+    }
+    if (accountCompanyName) {
+      const account = await Account.findOne({
+        company_name: new RegExp(`^${accountCompanyName}$`, "i"),
+      }).select("_id");
+
+      if (account) {
+        query.account = account._id;
+      }
+    }
+    if (owner_name) {
+      query.owner_name = { $regex: new RegExp(`^${owner_name}$`, "i") };
+    }
     // if (owner_email) {
-    //   query.owner_email = { $regex: new RegExp(`^${owner_email}$`, "i") }; // Partial match for owner, case-insensitive
+    //   query.owner_email = { $regex: new RegExp(`^${owner_email}$`, "i") };
     // }
 
     let queryBuilder = Client.find(query)
@@ -249,6 +260,7 @@ const deleteClient = async (req, res) => {
     }
 
     client.account.clients.pull(client);
+
     await client.account.save({ session });
 
     await Invoice.deleteMany({ clientId: client.id }).session(session);

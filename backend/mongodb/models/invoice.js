@@ -14,15 +14,15 @@ const InvoiceSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Account",
   },
-  discount: { type: Number, required: false },
-  tax: { type: Number, required: false },
   custom_id: { type: String, required: true },
   note: { type: String, required: false },
   currency: { type: String, required: true },
   services: [{ type: mongoose.Schema.Types.ObjectId, ref: "Service" }],
   creator: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  discount: { type: Number, required: false },
+  tax: { type: Number, required: false },
   total: { type: Number, required: true },
-  subTotal: { type: Number, required: true },
+  subtotal: { type: Number, required: true },
   status: { type: String, required: true },
 });
 

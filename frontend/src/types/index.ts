@@ -41,7 +41,7 @@ export type Client = {
   updatedDate: string;
   invoices?: Invoice[];
   account: Account;
-  userId:string;
+  userId: string;
 };
 
 export type Invoice = {
@@ -52,7 +52,7 @@ export type Invoice = {
   tax: number;
   custom_id: string;
   services: Service[];
-  subTotal: number;
+  subtotal: number;
   total: number;
   createdDate: string;
   updatedDate: string;

@@ -8,6 +8,7 @@ import {
   List,
   NumberField,
   ShowButton,
+  TagField,
   getDefaultSortOrder,
   useSelect,
   useTable,
@@ -40,12 +41,14 @@ export const InvoicePageList = () => {
 
   const { tableProps, filters, sorters } = useTable<Invoice>({
     meta: {
-      populate: ["client", "account.logo"],
+      populate: ["client", "account.logo", "account"],
     },
     sorters: {
       initial: [{ field: "updatedAt", order: "desc" }],
     },
   });
+
+  let currencySymbol = "$";
 
   const { selectProps: selectPropsAccounts } = useSelect({
     resource: "accounts",
@@ -175,13 +178,18 @@ export const InvoicePageList = () => {
           />
           <Table.Column
             title="Date"
-            dataIndex="date"
-            key="date"
+            dataIndex="invoice.invoiceDate"
+            key="invoice.invoiceDate"
             width={120}
             sorter
-            defaultSortOrder={getDefaultSortOrder("date", sorters)}
-            render={(date) => {
-              return <DateField value={date} format="D MMM YYYY" />;
+            defaultSortOrder={getDefaultSortOrder(
+              "invoice.invoiceDate",
+              sorters
+            )}
+            render={(_, record: Invoice) => {
+              return (
+                <DateField value={record.invoiceDate} format="DD/MM/YYYY" />
+              );
             }}
           />
           <Table.Column
@@ -194,10 +202,7 @@ export const InvoicePageList = () => {
             defaultSortOrder={getDefaultSortOrder("total", sorters)}
             render={(total) => {
               return (
-                <NumberField
-                  value={total}
-                  options={{ style: "currency", currency: "USD" }}
-                />
+                <TagField value={`${currencySymbol} ${total}`} color="green" />
               );
             }}
           />
@@ -206,7 +211,7 @@ export const InvoicePageList = () => {
             key="actions"
             fixed="right"
             align="end"
-            width={102}
+            width={120}
             render={(_, record: Invoice) => {
               return (
                 <Flex align="center" gap={8}>

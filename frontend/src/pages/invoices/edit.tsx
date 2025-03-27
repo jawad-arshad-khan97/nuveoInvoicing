@@ -44,14 +44,21 @@ export const InvoicesPageEdit = () => {
   const { selectProps: clientSelectProps } = useSelect({
     resource: "clients",
     optionLabel: "name",
-    optionValue: "id",
+    optionValue: "_id",
   });
 
   const { selectProps: accountSelectProps } = useSelect({
     resource: "accounts",
     optionLabel: "name",
-    optionValue: "id",
+    optionValue: "_id",
   });
+
+  const userData = localStorage.getItem("user");
+  let userId = "";
+  if (userData) {
+    const parsedUserData = JSON.parse(userData);
+    userId = parsedUserData.userId;
+  }
 
   return (
     <Edit
@@ -73,6 +80,14 @@ export const InvoicesPageEdit = () => {
           {...formProps}
           layout="vertical"
           initialValues={queryResult?.data?.data}
+          onFinish={async (values) => {
+            userId;
+
+            return formProps.onFinish?.({
+              ...values,
+              userId: userId,
+            });
+          }}
         >
           <Card
             bordered={false}
@@ -95,7 +110,7 @@ export const InvoicesPageEdit = () => {
                     { required: true, message: "Account name is required" },
                   ]}
                 >
-                  <Select {...clientSelectProps} />
+                  <Select {...accountSelectProps} />
                 </Form.Item>
                 <Form.Item
                   name={["account", "address"]}

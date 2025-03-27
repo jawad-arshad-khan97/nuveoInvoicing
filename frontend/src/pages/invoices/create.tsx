@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Col,
+  DatePicker,
   Divider,
   Flex,
   Form,
@@ -44,14 +45,93 @@ export const InvoicesPageCreate = () => {
   const { selectProps: selectPropsAccounts } = useSelect({
     resource: "accounts",
     optionLabel: "company_name",
-    optionValue: "id",
+    optionValue: "_id",
   });
 
   const { selectProps: selectPropsClients } = useSelect({
     resource: "clients",
     optionLabel: "name",
-    optionValue: "id",
+    optionValue: "_id",
   });
+
+  const currencyOptions = [
+    { value: "INR", label: "₹ INR" },
+    { value: "USD", label: "$ USD" },
+    { value: "EUR", label: "€ EUR" },
+    { value: "GBP", label: "£ GBP" },
+    { value: "JPY", label: "¥ JPY" },
+    { value: "SAR", label: "﷼ SAR" },
+  ];
+
+  const statusOptions = [
+    { value: "Draft", label: "Draft", color: "blue" },
+    { value: "NotPaid", label: "NotPaid", color: "red" },
+    { value: "Paid", label: "Paid", color: "green" },
+    { value: "Refunded", label: "Refunded", color: "orange" },
+  ];
+
+  const defaultCurrencySymbol = "₹";
+  const defaultCurrency = "INR";
+  const defaultStatus = "Draft";
+
+  const [selectedCurrency, setSelectedCurrency] = useState(defaultCurrency);
+
+  const [selectedCurrencySymbol, setSelectedCurrencySymbol] = useState(
+    defaultCurrencySymbol
+  );
+
+  const [selectedStatus, setSelectedStatus] = useState(defaultStatus);
+
+  const handleCurrencyChange = (value: React.SetStateAction<string>) => {
+    let symbol = "";
+
+    switch (value) {
+      case "INR":
+        symbol = "₹";
+        break;
+      case "USD":
+        symbol = "$";
+        break;
+      case "EUR":
+        symbol = "€";
+        break;
+      case "GBP":
+        symbol = "£";
+        break;
+      case "JPY":
+        symbol = "¥";
+        break;
+      case "SAR":
+        symbol = "﷼";
+        break;
+      default:
+        symbol = defaultCurrencySymbol;
+    }
+    setSelectedCurrencySymbol(symbol);
+    setSelectedCurrency(value);
+  };
+
+  const handleStatusChange = (value: React.SetStateAction<string>) => {
+    let status = "";
+
+    switch (value) {
+      case "Draft":
+        status = "Draft";
+        break;
+      case "NotPaid":
+        status = "NotPaid";
+        break;
+      case "Paid":
+        status = "Paid";
+        break;
+      case "Refunded":
+        status = "Refunded";
+        break;
+      default:
+        status = defaultStatus;
+    }
+    setSelectedStatus(status);
+  };
 
   const handleServiceNumbersChange = (
     index: number,
@@ -70,11 +150,20 @@ export const InvoicesPageCreate = () => {
     });
   };
 
+  const userData = localStorage.getItem("user");
+  let userId = "";
+  if (userData) {
+    const parsedUserData = JSON.parse(userData);
+    userId = parsedUserData.userId;
+  }
+
   const onFinishHandler = (values: Invoice) => {
     const valuesWithServices = {
       ...values,
+      subtotal,
       total,
       tax,
+      userId: userId,
       date: new Date().toISOString(),
       services: services.filter((service) => service.title),
     };
@@ -100,6 +189,7 @@ export const InvoicesPageCreate = () => {
     >
       <Form
         {...formProps}
+        initialValues={{ status: defaultStatus, currency: defaultCurrency }}
         onFinish={(values) => onFinishHandler(values as Invoice)}
         layout="vertical"
       >
@@ -123,7 +213,7 @@ export const InvoicesPageCreate = () => {
                 label="Account"
                 name="account"
                 rules={[{ required: true }]}
-                style={{ flex: 1 }}
+                style={{ flex: 1, minWidth: "250px" }}
               >
                 <Select
                   {...selectPropsAccounts}
@@ -134,14 +224,105 @@ export const InvoicesPageCreate = () => {
                 label="Client"
                 name="client"
                 rules={[{ required: true }]}
-                style={{ flex: 1 }}
+                style={{ flex: 1, minWidth: "250px" }}
               >
                 <Select
                   {...selectPropsClients}
                   placeholder="Please select client"
                 />
               </Form.Item>
+
+              <Form.Item
+                label="Invoice Date"
+                name="invoiceDate"
+                rules={[
+                  {
+                    required: true,
+                  },
+                ]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <DatePicker format="DD-MM-YYYY" />
+              </Form.Item>
             </Flex>
+
+            <Flex
+              align="center"
+              gap={40}
+              wrap="wrap"
+              style={{ padding: "32px", marginTop: "-75px" }}
+            >
+              <Form.Item
+                label="Status"
+                name="status"
+                rules={[{ required: true }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Select
+                  placeholder="Select Status"
+                  options={statusOptions}
+                  onChange={handleStatusChange}
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Custom Id"
+                name="custom_id"
+                rules={[{ required: false }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Input />
+              </Form.Item>
+
+              <Form.Item
+                label="Currency"
+                name="currency"
+                rules={[{ required: true }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Select
+                  placeholder="Select Status"
+                  options={currencyOptions}
+                  onChange={handleCurrencyChange}
+                />
+              </Form.Item>
+            </Flex>
+
+            <Flex
+              align="center"
+              gap={40}
+              wrap="wrap"
+              style={{ padding: "32px", marginTop: "-75px" }}
+            >
+              <Form.Item
+                label="Invoice Name"
+                name="name"
+                rules={[{ required: true }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Input />
+              </Form.Item>
+            </Flex>
+
+            <Flex
+              align="center"
+              gap={40}
+              wrap="wrap"
+              style={{ padding: "32px", marginTop: "-75px" }}
+            >
+              <Form.Item
+                label="Note"
+                name="note"
+                rules={[{ required: false }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Input.TextArea
+                  placeholder="Enter notes here"
+                  autoSize={{ minRows: 2, maxRows: 6 }}
+                />
+              </Form.Item>
+            </Flex>
+
             <Divider style={{ margin: 0 }} />
             <div style={{ padding: "32px" }}>
               <Typography.Title
@@ -233,7 +414,7 @@ export const InvoicesPageCreate = () => {
                             className={styles.serviceRowColumn}
                           >
                             <InputNumber
-                              addonBefore="$"
+                              addonBefore={selectedCurrencySymbol}
                               style={{ width: "100%" }}
                               placeholder="Unit Price"
                               min={0}
@@ -368,7 +549,7 @@ export const InvoicesPageCreate = () => {
                   </Typography.Text>
                   <NumberField
                     value={subtotal}
-                    options={{ style: "currency", currency: "USD" }}
+                    options={{ style: "currency", currency: selectedCurrency }}
                   />
                 </Flex>
                 <Flex
@@ -412,7 +593,7 @@ export const InvoicesPageCreate = () => {
                   </Typography.Text>
                   <NumberField
                     value={total}
-                    options={{ style: "currency", currency: "USD" }}
+                    options={{ style: "currency", currency: selectedCurrency }}
                   />
                 </Flex>
               </Flex>
