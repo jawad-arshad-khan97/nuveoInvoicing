@@ -102,6 +102,8 @@ const getClientDetail = async (req, res) => {
 };
 
 const createClient = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const {
       account,
@@ -122,9 +124,6 @@ const createClient = async (req, res) => {
     const nextId = maxIdClient ? parseInt(maxIdClient.id) + 1 : 1;
 
     let photoUrl = "";
-
-    const session = await mongoose.startSession();
-    session.startTransaction();
 
     const newClient = new Client({
       id: nextId,
@@ -152,6 +151,8 @@ const createClient = async (req, res) => {
       .status(201)
       .json({ message: "Client created successfully", data: savedClient });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     if (error.code === 11000) {
       return res.status(409).json({ message: "Owner email already exists" });
     }
@@ -160,6 +161,8 @@ const createClient = async (req, res) => {
 };
 
 const updateClient = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { id } = req.params;
     const {
@@ -196,29 +199,32 @@ const updateClient = async (req, res) => {
     if (userId) updatedFields.creator = userId;
     if (userId) updatedFields.logo = logo;
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     const updatedClient = await Client.findByIdAndUpdate(
       _id,
       { $set: updatedFields },
       { new: true, runValidators: true } // Return the updated document and run validations
     );
 
-    await updateClient.save({ session });
+    if (!updateClient) {
+      throw new Error("Client not found");
+    }
 
     if (account) {
       if (client.account) {
-        client.account.client.pull(client);
+        client.account.clients.pull(client);
         client.account.clients.push(updatedClient);
         await client.account.save({ session });
       }
     }
 
+    await session.commitTransaction();
+
     res
       .status(200)
       .json({ message: "Client updated successfully", data: updatedClient });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     if (error.code === 11000) {
       return res.status(409).json({ message: "Owner email already exists" });
     }
@@ -233,14 +239,16 @@ const deleteClient = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const client = await Client.findOne({ id }).session(session);
+    const client = await Client.findOne({ id })
+      .populate("account")
+      .session(session);
 
     if (!client) {
       await session.abortTransaction();
       return res.status(404).json({ message: "Client not found" });
     }
 
-    client.account.client.pull(client);
+    client.account.clients.pull(client);
     await client.account.save({ session });
 
     await Invoice.deleteMany({ clientId: client.id }).session(session);

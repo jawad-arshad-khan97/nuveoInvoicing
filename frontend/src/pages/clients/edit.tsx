@@ -46,6 +46,13 @@ export const ClientsPageEdit = () => {
   const invoices = queryResult?.data?.data?.invoices || [];
   const isLoading = queryResult?.isLoading;
 
+  const userData = localStorage.getItem("user");
+  let userId = "";
+  if (userData) {
+    const parsedUserData = JSON.parse(userData);
+    userId = parsedUserData.userId;
+  }
+
   return (
     <Show
       title="Clients"
@@ -62,7 +69,16 @@ export const ClientsPageEdit = () => {
         },
       }}
     >
-      <Form {...formProps} layout="vertical">
+      <Form
+        {...formProps}
+        onFinish={async (values) => {
+          return formProps.onFinish?.({
+            ...values,
+            userId: userId,
+          });
+        }}
+        layout="vertical"
+      >
         <Row>
           <Col span={24}>
             <Flex gap={16}>
