@@ -105,7 +105,9 @@ const getAllAccounts = async (req, res) => {
 
 const getAccountDetail = async (req, res) => {
   const { id } = req.params;
-  const accountExists = await Account.findOne({ id: id })
+  const accountExists = await Account.findOne({
+    id: id,
+  })
     .populate("clients")
     .populate("invoices");
   if (accountExists) {

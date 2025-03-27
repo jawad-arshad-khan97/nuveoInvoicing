@@ -42,7 +42,7 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
       ],
     },
     meta: {
-      populate: ["account.logo", "invoices"],
+      populate: ["account", "account.logo", "account.owner_name", "invoices"],
     },
   });
 
@@ -63,6 +63,8 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
     optionLabel: "company_name",
     optionValue: "company_name",
   });
+
+  console.log(selectPropsAccountName);
 
   return (
     <>
@@ -206,6 +208,7 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
             render={(_, record: Client) => {
               const logoUrl = record?.account?.logo;
               const src = logoUrl ? `${API_URL}${logoUrl}` : null;
+              console.log(logoUrl);
               const name = record?.account?.company_name || "";
 
               return (

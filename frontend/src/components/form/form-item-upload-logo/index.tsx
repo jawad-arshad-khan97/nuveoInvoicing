@@ -101,7 +101,17 @@ export const FormItemUploadLogo = ({
                   error || !src ? getRandomColorFromString(label) : "none",
               }}
             >
-              {<Typography.Text>{label[0].toUpperCase()}</Typography.Text>}
+              {
+                <Typography.Text
+                  style={{
+                    fontSize: "50px",
+                    position: "relative",
+                    top: "-15px",
+                  }}
+                >
+                  {label[0].toUpperCase()}
+                </Typography.Text>
+              }
             </Avatar>
 
             <div className={styles.overlayContainer}>

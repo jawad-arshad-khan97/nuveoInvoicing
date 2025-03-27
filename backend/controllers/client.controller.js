@@ -1,4 +1,5 @@
 import Client from "../mongodb/models/client.js";
+import Account from "../mongodb/models/account.js";
 import Invoice from "../mongodb/models/invoice.js";
 import User from "../mongodb/models/user.js";
 import mongoose from "mongoose";
@@ -74,6 +75,8 @@ const getAllClients = async (req, res) => {
       });
     }
 
+    queryBuilder = queryBuilder.populate([{ path: "account" }]);
+
     const totalCount = await Client.countDocuments(query);
 
     const clients = await queryBuilder;
@@ -89,7 +92,7 @@ const getAllClients = async (req, res) => {
 const getClientDetail = async (req, res) => {
   const { id } = req.params;
   const clientExists = await Client.findOne({ id: id })
-    .populate("clients")
+    .populate("account")
     .populate("invoices");
   if (clientExists) {
     res.status(200).json(clientExists);
@@ -108,6 +111,7 @@ const createClient = async (req, res) => {
       phone,
       name = "",
       userId = "",
+      logo,
     } = req.body;
 
     if (!owner_name || !owner_name || !owner_email || !address || !phone) {
@@ -119,6 +123,9 @@ const createClient = async (req, res) => {
 
     let photoUrl = "";
 
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     const newClient = new Client({
       id: nextId,
       owner_name,
@@ -128,9 +135,18 @@ const createClient = async (req, res) => {
       phone,
       name,
       creator: userId,
+      logo,
     });
 
-    const savedClient = await newClient.save();
+    const savedClient = await newClient.save({ session });
+
+    if (account) {
+      const accountToUpdate = await Account.findOne({ _id: account });
+      accountToUpdate.clients.push(newClient._id);
+      await accountToUpdate.save({ session });
+    }
+
+    await session.commitTransaction();
 
     res
       .status(201)
@@ -146,15 +162,23 @@ const createClient = async (req, res) => {
 const updateClient = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, owner_name, owner_email, address, phone, account, userId } =
-      req.body;
+    const {
+      name,
+      owner_name,
+      owner_email,
+      address,
+      phone,
+      account,
+      logo,
+      userId,
+    } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User Not Found" });
     }
 
-    const client = await Client.findOne({ id: id });
+    const client = await Client.findOne({ id: id }).populate("account");
     if (!client) {
       return res.status(404).json({ message: "Client not found" });
     }
@@ -170,12 +194,26 @@ const updateClient = async (req, res) => {
     if (phone) updatedFields.phone = phone;
     if (account) updatedFields.account = account;
     if (userId) updatedFields.creator = userId;
+    if (userId) updatedFields.logo = logo;
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
     const updatedClient = await Client.findByIdAndUpdate(
       _id,
       { $set: updatedFields },
       { new: true, runValidators: true } // Return the updated document and run validations
     );
+
+    await updateClient.save({ session });
+
+    if (account) {
+      if (client.account) {
+        client.account.client.pull(client);
+        client.account.clients.push(updatedClient);
+        await client.account.save({ session });
+      }
+    }
 
     res
       .status(200)
@@ -201,6 +239,9 @@ const deleteClient = async (req, res) => {
       await session.abortTransaction();
       return res.status(404).json({ message: "Client not found" });
     }
+
+    client.account.client.pull(client);
+    await client.account.save({ session });
 
     await Invoice.deleteMany({ clientId: client.id }).session(session);
 

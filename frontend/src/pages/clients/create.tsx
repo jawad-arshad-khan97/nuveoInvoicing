@@ -47,7 +47,6 @@ export const ClientsPageCreate = () => {
         {...formProps}
         onFinish={async (values) => {
           userId;
-          console.log(values);
 
           return formProps.onFinish?.({
             ...values,

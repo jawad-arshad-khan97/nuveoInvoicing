@@ -15,6 +15,7 @@ const ClientSchema = new mongoose.Schema({
     ref: "Account",
     required: true,
   },
+  logo: { type: String, required: false },
   invoices: [{ type: mongoose.Schema.Types.ObjectId, ref: "Invoice" }],
   creator: {
     type: mongoose.Schema.Types.ObjectId,
