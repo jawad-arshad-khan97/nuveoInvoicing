@@ -195,7 +195,7 @@ export const InvoicesPageEdit = () => {
         },
       }}
     >
-      <Spin spinning={loading}>
+      {!loading ? (
         <Form
           {...formProps}
           layout="vertical"
@@ -651,7 +651,9 @@ export const InvoicesPageEdit = () => {
             </div>
           </Card>
         </Form>
-      </Spin>
+      ) : (
+        <Spin spinning={true} />
+      )}
     </Edit>
   );
 };

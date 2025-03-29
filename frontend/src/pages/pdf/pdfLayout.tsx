@@ -16,13 +16,6 @@ type PdfProps = {
 };
 
 export const PdfLayout: React.FC<PdfProps> = ({ record }) => {
-  const subtotal =
-    record?.services?.reduce((prev, cur) => {
-      return prev + cur?.quantity * cur?.unitPrice;
-    }, 0) ?? 0;
-
-  console.log(record?.account?.logo);
-
   const logoUrl = record?.account?.logo
     ? `${API_URL}${record?.account?.logo}`
     : undefined;
@@ -148,7 +141,7 @@ export const PdfLayout: React.FC<PdfProps> = ({ record }) => {
             </View>
 
             <View style={styles.totalContainer}>
-              <Text style={styles.totalText}>SUBTOTAL: {record?.subTotal}</Text>
+              <Text style={styles.totalText}>SUBTOTAL: {record?.subtotal}</Text>
               <Text style={styles.totalText}>
                 Discount(%): {record?.discount}
               </Text>

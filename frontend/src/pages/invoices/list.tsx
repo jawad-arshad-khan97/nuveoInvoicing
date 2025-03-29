@@ -41,7 +41,7 @@ export const InvoicePageList = () => {
 
   const { tableProps, filters, sorters } = useTable<Invoice>({
     meta: {
-      populate: ["client", "account.logo", "account"],
+      populate: ["client", "account.logo", "account", "services"],
     },
     sorters: {
       initial: [{ field: "updatedAt", order: "desc" }],
