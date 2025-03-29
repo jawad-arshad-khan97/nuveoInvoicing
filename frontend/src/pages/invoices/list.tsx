@@ -62,6 +62,11 @@ export const InvoicePageList = () => {
     optionValue: "name",
   });
 
+  const { selectProps: selectPropsInvoices } = useSelect({
+    resource: "invoices",
+    optionLabel: "name",
+    optionValue: "name",
+  });
   const { show, visible, close } = useModal();
 
   return (
@@ -87,6 +92,22 @@ export const InvoicePageList = () => {
         <Table
           {...tableProps}
           rowKey={"id"}
+          onRow={(record) => ({
+            onClick: (event) => {
+              if (!(event.target as HTMLElement).closest("button")) {
+                go({
+                  to: {
+                    resource: "invoices",
+                    action: "edit",
+                    id: record.id,
+                  },
+                });
+              }
+            },
+            onMouseEnter: (event) => {
+              (event.target as HTMLElement).style.cursor = "pointer";
+            },
+          })}
           pagination={{
             ...tableProps.pagination,
             showSizeChanger: true,
@@ -177,6 +198,26 @@ export const InvoicePageList = () => {
             )}
           />
           <Table.Column
+            title="Invoice"
+            dataIndex="client.name"
+            key="invoice.name"
+            render={(_, record: Invoice) => {
+              return <Typography.Text>{record?.name}</Typography.Text>;
+            }}
+            defaultFilteredValue={getDefaultFilter("name", filters, "in")}
+            filterDropdown={(props) => (
+              <FilterDropdown {...props}>
+                <Select
+                  mode="multiple"
+                  placeholder="Search Invice Name"
+                  style={{ width: 220 }}
+                  {...selectPropsInvoices}
+                />
+              </FilterDropdown>
+            )}
+          />
+
+          <Table.Column
             title="Date"
             dataIndex="invoice.invoiceDate"
             key="invoice.invoiceDate"
@@ -220,11 +261,26 @@ export const InvoicePageList = () => {
                     hideText
                     recordItemId={record.id}
                     icon={<EyeOutlined />}
+                    onClick={(event) => {
+                      event.stopPropagation(); // Prevent row click event
+                      console.log("Navigating to show page for ID:", record.id);
+                      go({
+                        to: {
+                          resource: "invoices",
+                          action: "show",
+                          id: record.id,
+                        },
+                      });
+                    }}
                   />
+
                   <DeleteButton
                     size="small"
                     hideText
                     recordItemId={record.id}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                    }}
                   />
                   <Button
                     size="small"

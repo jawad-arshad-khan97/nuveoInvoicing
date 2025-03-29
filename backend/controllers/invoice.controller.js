@@ -1,6 +1,7 @@
 import Invoice from "../mongodb/models/invoice.js";
 import Account from "../mongodb/models/account.js";
 import Service from "../mongodb/models/service.js";
+import Client from "../mongodb/models/client.js";
 import User from "../mongodb/models/user.js";
 import mongoose from "mongoose";
 
@@ -53,9 +54,32 @@ const getAllInvoices = async (req, res) => {
     if (id) {
       query.id = { $regex: new RegExp(`^${id}$`, "i") };
     }
-    // if (name) {
-    //   query.name = { $regex: new RegExp(`^${name}$`, "i") }; // Exact match for title, case-insensitive
-    // }
+
+    const {
+      ["account.company_name"]: accountCompanyName,
+      ["client.name"]: clientName,
+    } = req.query;
+    if (accountCompanyName) {
+      const account = await Account.findOne({
+        company_name: new RegExp(`^${accountCompanyName}$`, "i"),
+      }).select("_id");
+
+      if (account) {
+        query.account = account._id;
+      }
+    }
+    if (clientName) {
+      const client = await Client.findOne({
+        company_name: new RegExp(`^${clientName}$`, "i"),
+      }).select("_id");
+
+      if (client) {
+        query.client = client._id;
+      }
+    }
+    if (name) {
+      query.name = { $regex: new RegExp(`^${name}$`, "i") }; // Exact match for title, case-insensitive
+    }
     // if (owner_name) {
     //   query.owner_name = { $regex: new RegExp(`^${owner_name}$`, "i") }; // Partial match for owner, case-insensitive
     // }
@@ -91,7 +115,8 @@ const getInvoiceDetail = async (req, res) => {
   const { id } = req.params;
   const invoiceExists = await Invoice.findOne({ id: id })
     .populate("account")
-    .populate("invoices");
+    .populate("client")
+    .populate("services");
   if (invoiceExists) {
     res.status(200).json(invoiceExists);
   } else {

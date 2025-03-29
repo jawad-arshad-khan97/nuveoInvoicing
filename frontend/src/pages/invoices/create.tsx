@@ -281,7 +281,7 @@ export const InvoicesPageCreate = () => {
                 style={{ flex: 1, minWidth: "250px" }}
               >
                 <Select
-                  placeholder="Select Status"
+                  placeholder="Select Currency"
                   options={currencyOptions}
                   onChange={handleCurrencyChange}
                 />

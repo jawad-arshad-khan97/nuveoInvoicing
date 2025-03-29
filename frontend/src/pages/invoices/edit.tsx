@@ -1,11 +1,17 @@
-import { useForm, useSelect } from "@refinedev/antd";
-import { FilePdfOutlined } from "@ant-design/icons";
+import { NumberField, useForm, useSelect } from "@refinedev/antd";
+import {
+  DeleteOutlined,
+  FilePdfOutlined,
+  PlusCircleOutlined,
+} from "@ant-design/icons";
 import {
   Avatar,
   Button,
   Card,
   Col,
+  DatePicker,
   Divider,
+  Flex,
   Form,
   Input,
   InputNumber,
@@ -20,7 +26,9 @@ import { Edit } from "@refinedev/antd";
 import { API_URL } from "@/utils/constants";
 import { getRandomColorFromString } from "@/utils/get-random-color";
 import type { Invoice, Service } from "@/types";
-import { useStyles } from "./show.styled";
+import { useStyles } from "./create.styled";
+import { Fragment, useState } from "react";
+import dayjs from "dayjs";
 
 export const InvoicesPageEdit = () => {
   const { styles } = useStyles();
@@ -31,25 +39,29 @@ export const InvoicesPageEdit = () => {
     saveButtonProps,
   } = useForm<Invoice>({
     meta: {
-      populate: ["client", "account.logo"],
+      populate: ["client", "account.logo", "services"],
     },
   });
 
   const invoice = queryResult?.data?.data;
+
   const loading = queryResult?.isLoading;
   const logoUrl = invoice?.account?.logo
     ? `${API_URL}${invoice?.account?.logo}`
     : undefined;
+  const invoiceDate = queryResult?.data?.data?.invoiceDate
+    ? dayjs(queryResult.data.data.invoiceDate)
+    : null;
 
-  const { selectProps: clientSelectProps } = useSelect({
+  const { selectProps: selectPropsClients } = useSelect({
     resource: "clients",
     optionLabel: "name",
     optionValue: "_id",
   });
 
-  const { selectProps: accountSelectProps } = useSelect({
+  const { selectProps: selectPropsAccounts } = useSelect({
     resource: "accounts",
-    optionLabel: "name",
+    optionLabel: "company_name",
     optionValue: "_id",
   });
 
@@ -59,6 +71,114 @@ export const InvoicesPageEdit = () => {
     const parsedUserData = JSON.parse(userData);
     userId = parsedUserData.userId;
   }
+
+  const currencyOptions = [
+    { value: "INR", label: "₹ INR" },
+    { value: "USD", label: "$ USD" },
+    { value: "EUR", label: "€ EUR" },
+    { value: "GBP", label: "£ GBP" },
+    { value: "JPY", label: "¥ JPY" },
+    { value: "SAR", label: "﷼ SAR" },
+  ];
+
+  const statusOptions = [
+    { value: "Draft", label: "Draft", color: "blue" },
+    { value: "NotPaid", label: "NotPaid", color: "red" },
+    { value: "Paid", label: "Paid", color: "green" },
+    { value: "Refunded", label: "Refunded", color: "orange" },
+  ];
+
+  const defaultCurrencySymbol = "₹";
+  const defaultCurrency = "INR";
+  const defaultStatus = "Draft";
+
+  const [selectedCurrency, setSelectedCurrency] = useState(defaultCurrency);
+
+  const [selectedCurrencySymbol, setSelectedCurrencySymbol] = useState(
+    defaultCurrencySymbol
+  );
+
+  const [selectedStatus, setSelectedStatus] = useState(defaultStatus);
+
+  const handleCurrencyChange = (value: React.SetStateAction<string>) => {
+    let symbol = "";
+
+    switch (value) {
+      case "INR":
+        symbol = "₹";
+        break;
+      case "USD":
+        symbol = "$";
+        break;
+      case "EUR":
+        symbol = "€";
+        break;
+      case "GBP":
+        symbol = "£";
+        break;
+      case "JPY":
+        symbol = "¥";
+        break;
+      case "SAR":
+        symbol = "﷼";
+        break;
+      default:
+        symbol = defaultCurrencySymbol;
+    }
+    setSelectedCurrencySymbol(symbol);
+    setSelectedCurrency(value);
+  };
+
+  const handleStatusChange = (value: React.SetStateAction<string>) => {
+    let status = "";
+
+    switch (value) {
+      case "Draft":
+        status = "Draft";
+        break;
+      case "NotPaid":
+        status = "NotPaid";
+        break;
+      case "Paid":
+        status = "Paid";
+        break;
+      case "Refunded":
+        status = "Refunded";
+        break;
+      default:
+        status = defaultStatus;
+    }
+    setSelectedStatus(status);
+  };
+
+  const [tax, setTax] = useState<number>(queryResult?.data?.data?.tax || 0);
+  const [services, setServices] = useState<Service[]>(
+    queryResult?.data?.data?.services || []
+  );
+  const subtotal = services.reduce(
+    (acc, service) =>
+      acc +
+      (service.unitPrice * service.quantity * (100 - service.discount)) / 100,
+    0
+  );
+  const total = subtotal + (subtotal * tax) / 100;
+
+  const handleServiceNumbersChange = (
+    index: number,
+    key: "quantity" | "discount" | "unitPrice",
+    value: number
+  ) => {
+    setServices((prev) => {
+      const currentService = { ...prev[index] };
+      currentService[key] = value;
+      currentService.totalPrice =
+        currentService.unitPrice *
+        currentService.quantity *
+        ((100 - currentService.discount) / 100);
+
+      return prev.map((item, i) => (i === index ? currentService : item));
+    });
+  };
 
   return (
     <Edit
@@ -79,7 +199,10 @@ export const InvoicesPageEdit = () => {
         <Form
           {...formProps}
           layout="vertical"
-          initialValues={queryResult?.data?.data}
+          initialValues={{
+            ...queryResult?.data?.data,
+            invoiceDate: invoiceDate,
+          }}
           onFinish={async (values) => {
             userId;
 
@@ -101,7 +224,7 @@ export const InvoicesPageEdit = () => {
               </Typography.Text>
             }
           >
-            <Row className={styles.fromToContainer}>
+            {/* <Row className={styles.fromToContainer} gutter={[24, 16]}>
               <Col xs={24} md={12}>
                 <Form.Item
                   name={["account", "company_name"]}
@@ -114,22 +237,22 @@ export const InvoicesPageEdit = () => {
                 </Form.Item>
                 <Form.Item
                   name={["account", "address"]}
-                  label="Address"
-                  rules={[{ required: true, message: "Address is required" }]}
+                  label="Account Address"
+                  rules={[{ required: false, message: "Address is required" }]}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name={["account", "phone"]}
-                  label="Phone"
-                  rules={[{ required: true, message: "Phone is required" }]}
+                  label="Account Phone"
+                  rules={[{ required: false, message: "Phone is required" }]}
                 >
                   <Input />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
                 <Form.Item
-                  name={["client", "id"]}
+                  name={["client", "name"]}
                   label="To (Client)"
                   rules={[{ required: true, message: "Client is required" }]}
                 >
@@ -137,116 +260,395 @@ export const InvoicesPageEdit = () => {
                 </Form.Item>
                 <Form.Item
                   name={["client", "address"]}
-                  label="Address"
-                  rules={[{ required: true, message: "Address is required" }]}
+                  label="Client Address"
+                  rules={[{ required: false, message: "Address is required" }]}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name={["client", "phone"]}
-                  label="Phone"
-                  rules={[{ required: true, message: "Phone is required" }]}
+                  label="Client Phone"
+                  rules={[{ required: false, message: "Phone is required" }]}
                 >
                   <Input />
                 </Form.Item>
               </Col>
-            </Row>
-            <Divider />
+            </Row> */}
 
-            <Typography.Title level={4} style={{ margin: 0, fontWeight: 400 }}>
-              Product / Services
-            </Typography.Title>
-            <Form.List name="services">
-              {(fields, { add, remove }) => (
-                <>
-                  <Table
-                    dataSource={fields}
-                    rowKey="name"
-                    pagination={false}
-                    scroll={{ x: 960 }}
+            <Flex
+              align="center"
+              gap={40}
+              wrap="wrap"
+              style={{ padding: "32px" }}
+            >
+              <Form.Item
+                label="Account"
+                name={["account", "company_name"]}
+                rules={[{ required: true }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Select
+                  {...selectPropsAccounts}
+                  placeholder="Please select account"
+                />
+              </Form.Item>
+              <Form.Item
+                label="Client"
+                name={["client", "name"]}
+                rules={[{ required: true }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Select
+                  {...selectPropsClients}
+                  placeholder="Please select client"
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Invoice Date"
+                name="invoiceDate"
+                rules={[
+                  {
+                    required: true,
+                  },
+                ]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <DatePicker format="DD-MM-YYYY" />
+              </Form.Item>
+            </Flex>
+
+            <Flex
+              align="center"
+              gap={40}
+              wrap="wrap"
+              style={{ padding: "32px", marginTop: "-75px" }}
+            >
+              <Form.Item
+                label="Status"
+                name="status"
+                rules={[{ required: true }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Select
+                  placeholder="Select Status"
+                  options={statusOptions}
+                  onChange={handleStatusChange}
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Custom Id"
+                name="custom_id"
+                rules={[{ required: false }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Input />
+              </Form.Item>
+
+              <Form.Item
+                label="Currency"
+                name="currency"
+                rules={[{ required: true }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Select
+                  placeholder="Select Status"
+                  options={currencyOptions}
+                  onChange={handleCurrencyChange}
+                />
+              </Form.Item>
+            </Flex>
+            <Flex
+              align="center"
+              gap={40}
+              wrap="wrap"
+              style={{ padding: "32px", marginTop: "-75px" }}
+            >
+              <Form.Item
+                label="Invoice Name"
+                name="name"
+                rules={[{ required: true }]}
+                style={{ flex: 1, minWidth: "250px" }}
+              >
+                <Input />
+              </Form.Item>
+            </Flex>
+            <Divider style={{ margin: 0 }} />
+            <div style={{ padding: "32px" }}>
+              <Typography.Title
+                level={4}
+                style={{ marginBottom: "32px", fontWeight: 400 }}
+              >
+                Products / Services
+              </Typography.Title>
+              <div className={styles.serviceTableWrapper}>
+                <div className={styles.serviceTableContainer}>
+                  <Row className={styles.serviceHeader}>
+                    <Col
+                      xs={{ span: 7 }}
+                      className={styles.serviceHeaderColumn}
+                    >
+                      Title
+                      <Divider
+                        type="vertical"
+                        className={styles.serviceHeaderDivider}
+                      />
+                    </Col>
+                    <Col
+                      xs={{ span: 5 }}
+                      className={styles.serviceHeaderColumn}
+                    >
+                      Unit Price
+                      <Divider
+                        type="vertical"
+                        className={styles.serviceHeaderDivider}
+                      />
+                    </Col>
+                    <Col
+                      xs={{ span: 4 }}
+                      className={styles.serviceHeaderColumn}
+                    >
+                      Quantity
+                      <Divider
+                        type="vertical"
+                        className={styles.serviceHeaderDivider}
+                      />
+                    </Col>
+                    <Col
+                      xs={{ span: 4 }}
+                      className={styles.serviceHeaderColumn}
+                    >
+                      Discount
+                      <Divider
+                        type="vertical"
+                        className={styles.serviceHeaderDivider}
+                      />
+                    </Col>
+                    <Col
+                      xs={{ span: 3 }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                      }}
+                      className={styles.serviceHeaderColumn}
+                    >
+                      Total Price
+                    </Col>
+                    <Col xs={{ span: 1 }}> </Col>
+                  </Row>
+                  <Row>
+                    {services.map((service, index) => {
+                      return (
+                        <Fragment key={index}>
+                          <Col
+                            xs={{ span: 7 }}
+                            className={styles.serviceRowColumn}
+                          >
+                            <Input
+                              placeholder="Title"
+                              value={service.title}
+                              onChange={(e) => {
+                                setServices((prev) =>
+                                  prev.map((item, i) =>
+                                    i === index
+                                      ? { ...item, title: e.target.value }
+                                      : item
+                                  )
+                                );
+                              }}
+                            />
+                          </Col>
+                          <Col
+                            xs={{ span: 5 }}
+                            className={styles.serviceRowColumn}
+                          >
+                            <InputNumber
+                              addonBefore={selectedCurrencySymbol}
+                              style={{ width: "100%" }}
+                              placeholder="Unit Price"
+                              min={0}
+                              value={service.unitPrice}
+                              onChange={(value) => {
+                                handleServiceNumbersChange(
+                                  index,
+                                  "unitPrice",
+                                  value || 0
+                                );
+                              }}
+                            />
+                          </Col>
+                          <Col
+                            xs={{ span: 4 }}
+                            className={styles.serviceRowColumn}
+                          >
+                            <InputNumber
+                              style={{ width: "100%" }}
+                              placeholder="Quantity"
+                              min={0}
+                              value={service.quantity}
+                              onChange={(value) => {
+                                handleServiceNumbersChange(
+                                  index,
+                                  "quantity",
+                                  value || 0
+                                );
+                              }}
+                            />
+                          </Col>
+                          <Col
+                            xs={{ span: 4 }}
+                            className={styles.serviceRowColumn}
+                          >
+                            <InputNumber
+                              addonAfter="%"
+                              style={{ width: "100%" }}
+                              placeholder="Discount"
+                              min={0}
+                              value={service.discount}
+                              onChange={(value) => {
+                                handleServiceNumbersChange(
+                                  index,
+                                  "discount",
+                                  value || 0
+                                );
+                              }}
+                            />
+                          </Col>
+                          <Col
+                            xs={{ span: 3 }}
+                            className={styles.serviceRowColumn}
+                            style={{
+                              justifyContent: "flex-end",
+                            }}
+                          >
+                            <NumberField
+                              value={service.totalPrice}
+                              options={{ style: "currency", currency: "USD" }}
+                            />
+                          </Col>
+                          <Col
+                            xs={{ span: 1 }}
+                            className={styles.serviceRowColumn}
+                            style={{
+                              paddingLeft: "0",
+                              justifyContent: "flex-end",
+                            }}
+                          >
+                            <Button
+                              danger
+                              size="small"
+                              icon={<DeleteOutlined />}
+                              onClick={() => {
+                                setServices((prev) =>
+                                  prev.filter((_, i) => i !== index)
+                                );
+                              }}
+                            />
+                          </Col>
+                        </Fragment>
+                      );
+                    })}
+                  </Row>
+                  <Divider
+                    style={{
+                      margin: "0",
+                    }}
+                  />
+                  <div style={{ padding: "12px" }}>
+                    <Button
+                      icon={<PlusCircleOutlined />}
+                      type="text"
+                      className={styles.addNewServiceItemButton}
+                      onClick={() => {
+                        setServices((prev) => [
+                          ...prev,
+                          {
+                            title: "",
+                            unitPrice: 0,
+                            quantity: 0,
+                            discount: 0,
+                            totalPrice: 0,
+                            description: "",
+                          },
+                        ]);
+                      }}
+                    >
+                      Add new item
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <Flex
+                gap={16}
+                vertical
+                style={{
+                  marginLeft: "auto",
+                  marginTop: "24px",
+                  width: "220px",
+                }}
+              >
+                <Flex
+                  justify="space-between"
+                  style={{
+                    paddingLeft: 32,
+                  }}
+                >
+                  <Typography.Text className={styles.labelTotal}>
+                    Subtotal:
+                  </Typography.Text>
+                  <NumberField
+                    value={subtotal}
+                    options={{ style: "currency", currency: selectedCurrency }}
+                  />
+                </Flex>
+                <Flex
+                  align="center"
+                  justify="space-between"
+                  style={{
+                    paddingLeft: 32,
+                  }}
+                >
+                  <Typography.Text className={styles.labelTotal}>
+                    Sales tax:
+                  </Typography.Text>
+                  <InputNumber
+                    addonAfter="%"
+                    style={{ width: "96px" }}
+                    value={tax}
+                    min={0}
+                    onChange={(value) => {
+                      setTax(value || 0);
+                    }}
+                  />
+                </Flex>
+                <Divider
+                  style={{
+                    margin: "0",
+                  }}
+                />
+                <Flex
+                  justify="space-between"
+                  style={{
+                    paddingLeft: 16,
+                  }}
+                >
+                  <Typography.Text
+                    className={styles.labelTotal}
+                    style={{
+                      fontWeight: 700,
+                    }}
                   >
-                    <Table.Column
-                      title="Title"
-                      render={(_, field) => (
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "title"]}
-                          rules={[
-                            { required: true, message: "Title is required" },
-                          ]}
-                        >
-                          <Input />
-                        </Form.Item>
-                      )}
-                    />
-                    <Table.Column
-                      title="Unit Price"
-                      render={(_, field) => (
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "unitPrice"]}
-                          rules={[
-                            {
-                              required: true,
-                              message: "Unit price is required",
-                            },
-                          ]}
-                        >
-                          <InputNumber min={0} />
-                        </Form.Item>
-                      )}
-                    />
-                    <Table.Column
-                      title="Quantity"
-                      render={(_, field) => (
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "quantity"]}
-                          rules={[
-                            { required: true, message: "Quantity is required" },
-                          ]}
-                        >
-                          <InputNumber min={1} />
-                        </Form.Item>
-                      )}
-                    />
-                    <Table.Column
-                      title="Discount"
-                      render={(_, field) => (
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "discount"]}
-                          rules={[
-                            { required: true, message: "Discount is required" },
-                          ]}
-                        >
-                          <InputNumber min={0} max={100} />
-                        </Form.Item>
-                      )}
-                    />
-                    <Table.Column
-                      title="Actions"
-                      render={(_, field) => (
-                        <Button danger onClick={() => remove(field.name)}>
-                          Remove
-                        </Button>
-                      )}
-                    />
-                  </Table>
-                  <Button onClick={() => add()} type="dashed" block>
-                    Add Service
-                  </Button>
-                </>
-              )}
-            </Form.List>
-            <Divider />
-
-            <Form.Item label="Tax (%)" name="tax">
-              <InputNumber min={0} />
-            </Form.Item>
-            <Form.Item label="Total" name="total">
-              <InputNumber min={0} disabled />
-            </Form.Item>
+                    Total value:
+                  </Typography.Text>
+                  <NumberField
+                    value={total}
+                    options={{ style: "currency", currency: selectedCurrency }}
+                  />
+                </Flex>
+              </Flex>
+            </div>
           </Card>
         </Form>
       </Spin>

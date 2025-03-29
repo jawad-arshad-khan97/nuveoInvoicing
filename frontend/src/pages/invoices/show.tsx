@@ -27,7 +27,7 @@ export const InvoicesPageShow = () => {
 
   const { query: queryResult } = useShow<Invoice>({
     meta: {
-      populate: ["client", "account.logo"],
+      populate: ["client", "account.logo", "account", "services"],
     },
   });
 
@@ -38,6 +38,8 @@ export const InvoicesPageShow = () => {
   const logoUrl = invoice?.account?.logo
     ? `${API_URL}${invoice?.account?.logo}`
     : undefined;
+
+  console.log(invoice?.services);
 
   const { show, visible, close } = useModal();
 
@@ -97,7 +99,7 @@ export const InvoicesPageShow = () => {
                     <DateField
                       style={{ width: 84 }}
                       value={invoice?.invoiceDate}
-                      format="D MMM YYYY"
+                      format="DD/MM/YYYY"
                     />
                   </>
                 )}
@@ -123,7 +125,11 @@ export const InvoicesPageShow = () => {
                               ),
                         }}
                       >
-                        <Typography.Text>
+                        <Typography.Text
+                          style={{
+                            fontSize: "32px",
+                          }}
+                        >
                           {invoice?.account?.company_name?.[0]?.toUpperCase()}
                         </Typography.Text>
                       </Avatar>
@@ -185,7 +191,7 @@ export const InvoicesPageShow = () => {
               </Typography.Title>
               <Table
                 dataSource={invoice?.services || []}
-                rowKey={"id"}
+                rowKey={"_id"}
                 pagination={false}
                 loading={loading}
                 scroll={{ x: 960 }}
@@ -251,7 +257,7 @@ export const InvoicesPageShow = () => {
                     Subtotal:
                   </Typography.Text>
                   <NumberField
-                    value={invoice?.subTotal || 0}
+                    value={invoice?.subtotal || 0}
                     options={{ style: "currency", currency: "USD" }}
                   />
                 </Flex>

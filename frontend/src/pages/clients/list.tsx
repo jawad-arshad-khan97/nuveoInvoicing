@@ -176,6 +176,8 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
             key="total"
             width={120}
             align="end"
+            sorter
+            defaultSortOrder={getDefaultSortOrder("total", sorters)}
             render={(_, record: Client) => {
               let total = 0;
               record.invoices?.forEach((invoice) => {
@@ -190,6 +192,11 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
             title="Account"
             dataIndex="account.company_name"
             key="account.company_name"
+            sorter
+            defaultSortOrder={getDefaultSortOrder(
+              "account.company_name",
+              sorters
+            )}
             defaultFilteredValue={getDefaultFilter(
               "account.company_name",
               filters,
