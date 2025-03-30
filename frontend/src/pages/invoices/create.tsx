@@ -284,6 +284,7 @@ export const InvoicesPageCreate = () => {
                   placeholder="Select Currency"
                   options={currencyOptions}
                   onChange={handleCurrencyChange}
+                  disabled
                 />
               </Form.Item>
             </Flex>
@@ -474,7 +475,10 @@ export const InvoicesPageCreate = () => {
                           >
                             <NumberField
                               value={service.totalPrice}
-                              options={{ style: "currency", currency: "USD" }}
+                              options={{
+                                style: "currency",
+                                currency: selectedCurrency,
+                              }}
                             />
                           </Col>
                           <Col

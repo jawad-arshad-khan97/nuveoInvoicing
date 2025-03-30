@@ -89,6 +89,8 @@ const getAllAccounts = async (req, res) => {
         populate: { path: "invoices" },
       });
     }
+
+    queryBuilder = queryBuilder.populate([{ path: "invoices" }]);
     const totalCount = await Account.countDocuments(query);
 
     // Execute query

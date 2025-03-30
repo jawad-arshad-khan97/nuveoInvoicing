@@ -105,7 +105,7 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
             }}
           />
           <Table.Column
-            title="Title"
+            title="Client Name"
             dataIndex="client_name"
             key="client_name"
             sorter

@@ -27,12 +27,7 @@ export const AccountsPageList = ({ children }: PropsWithChildren) => {
     filters: {
       initial: [
         {
-          field: "owner_email",
-          operator: "contains",
-          value: "",
-        },
-        {
-          field: "phone",
+          field: "account_name",
           operator: "contains",
           value: "",
         },
@@ -100,7 +95,7 @@ export const AccountsPageList = ({ children }: PropsWithChildren) => {
             }}
           />
           <Table.Column
-            title="Title"
+            title="Account Name"
             dataIndex="account_name"
             key="account_name"
             sorter
@@ -202,20 +197,22 @@ export const AccountsPageList = ({ children }: PropsWithChildren) => {
           />
           <Table.Column
             title="Income"
-            dataIndex="income"
-            key="income"
+            dataIndex="total"
+            key="total"
             sorter
             width={120}
             align="end"
             render={(_, record: Account) => {
               let total = 0;
+              let currency = "USD";
               record.invoices?.forEach((invoice) => {
                 total += invoice.total;
+                currency = invoice.currency;
               });
               return (
                 <NumberField
                   value={total}
-                  options={{ style: "currency", currency: "USD" }}
+                  options={{ style: "currency", currency: currency }}
                 />
               );
             }}

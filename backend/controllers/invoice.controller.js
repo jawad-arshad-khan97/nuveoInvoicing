@@ -324,7 +324,10 @@ const deleteInvoice = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const invoice = await Invoice.findOne({ id }).session(session);
+    const invoice = await Invoice.findOne({ id })
+      .populate("account")
+      .populate("client")
+      .session(session);
 
     if (!invoice) {
       await session.abortTransaction();
@@ -334,9 +337,9 @@ const deleteInvoice = async (req, res) => {
     invoice.account.invoices.pull(invoice);
     invoice.client.invoices.pull(invoice);
 
-    await invoice.account.save({ session });
+    await invoice.account.save({ session }).session(session);
 
-    await Invoice.deleteOne({ id }).session(session);
+    await Invoice.deleteOne({ id }).session(session).session(session);
 
     await session.commitTransaction();
     session.endSession();

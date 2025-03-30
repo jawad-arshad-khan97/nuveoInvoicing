@@ -353,9 +353,10 @@ export const InvoicesPageEdit = () => {
                 style={{ flex: 1, minWidth: "250px" }}
               >
                 <Select
-                  placeholder="Select Status"
+                  placeholder="Select Currency"
                   options={currencyOptions}
                   onChange={handleCurrencyChange}
+                  disabled
                 />
               </Form.Item>
             </Flex>
@@ -525,7 +526,10 @@ export const InvoicesPageEdit = () => {
                           >
                             <NumberField
                               value={service.totalPrice}
-                              options={{ style: "currency", currency: "USD" }}
+                              options={{
+                                style: "currency",
+                                currency: selectedCurrency,
+                              }}
                             />
                           </Col>
                           <Col
