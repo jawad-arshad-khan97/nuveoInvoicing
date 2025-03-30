@@ -33,7 +33,7 @@ export const ClientsPageEdit = () => {
   const { formProps, query: queryResult } = useForm({
     redirect: false,
     meta: {
-      populate: ["account", "invoices.client", "invoices.account.logo"],
+      populate: ["account", "invoices", "invoices.client"],
     },
   });
 
@@ -44,6 +44,7 @@ export const ClientsPageEdit = () => {
   });
 
   const invoices = queryResult?.data?.data?.invoices || [];
+  const client = invoices?.client;
   const isLoading = queryResult?.isLoading;
 
   const userData = localStorage.getItem("user");
@@ -215,8 +216,8 @@ export const ClientsPageEdit = () => {
                 <Table.Column title="ID" dataIndex="id" key="id" width={72} />
                 <Table.Column
                   title="Date"
-                  dataIndex="date"
-                  key="date"
+                  dataIndex="invoiceDate"
+                  key="invoiceDate"
                   render={(date) => (
                     <DateField value={date} format="D MMM YYYY" />
                   )}

@@ -4,7 +4,7 @@ const AccountSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   company_name: { type: String, required: true },
   owner_name: { type: String, required: true },
-  owner_email: { type: String, required: true, unique: true },
+  owner_email: { type: String, required: true },
   logo: { type: String, required: false },
   country: { type: String, required: false },
   address: { type: String, required: false },

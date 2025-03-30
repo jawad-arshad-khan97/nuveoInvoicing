@@ -104,7 +104,12 @@ const getClientDetail = async (req, res) => {
   const { id } = req.params;
   const clientExists = await Client.findOne({ id: id })
     .populate("account")
-    .populate("invoices");
+    .populate({
+      path: "invoices",
+      populate: {
+        path: "client", // ✅ Populates client inside invoices
+      },
+    });
   if (clientExists) {
     res.status(200).json(clientExists);
   } else {

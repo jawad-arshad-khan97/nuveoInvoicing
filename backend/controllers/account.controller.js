@@ -109,7 +109,12 @@ const getAccountDetail = async (req, res) => {
     id: id,
   })
     .populate("clients")
-    .populate("invoices");
+    .populate({
+      path: "invoices",
+      populate: {
+        path: "client", // ✅ Populates client inside invoices
+      },
+    });
   if (accountExists) {
     res.status(200).json(accountExists);
   } else {

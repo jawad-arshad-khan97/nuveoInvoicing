@@ -149,6 +149,11 @@ const createInvoice = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found" });
+    }
+
     const maxIdInvoice = await Invoice.findOne().sort({ id: -1 }).select("id");
     const nextId = maxIdInvoice ? parseInt(maxIdInvoice.id) + 1 : 1;
 
@@ -183,6 +188,12 @@ const createInvoice = async (req, res) => {
       await accountToUpdate.save({ session });
     }
 
+    if (client) {
+      const clientToUpdate = await Client.findOne({ _id: client });
+      clientToUpdate.invoices.push(newInvoice._id);
+      await clientToUpdate.save({ session });
+    }
+
     await session.commitTransaction();
 
     res
@@ -206,8 +217,9 @@ const updateInvoice = async (req, res) => {
     const { account, client, date, services, tax, subtotal, total, userId } =
       req.body;
 
-    if (!account || !client || !date || !services || !total) {
-      return res.status(400).json({ message: "Missing required fields" });
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found" });
     }
 
     const invoice = await Invoice.findById(id).session(session);
@@ -269,6 +281,16 @@ const updateInvoice = async (req, res) => {
       }
     }
 
+    if (client) {
+      const clientToUpdate = await Client.findOne({ _id: client }).session(
+        session
+      );
+      if (clientToUpdate && !clientToUpdate.invoices.includes(invoice._id)) {
+        clientToUpdate.invoices.push(invoice._id);
+        await clientToUpdate.save({ session });
+      }
+    }
+
     await session.commitTransaction();
     res
       .status(200)
@@ -288,9 +310,7 @@ const deleteInvoice = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const invoice = await Invoice.findOne({ id })
-      .populate("account")
-      .session(session);
+    const invoice = await Invoice.findOne({ id }).session(session);
 
     if (!invoice) {
       await session.abortTransaction();
@@ -298,10 +318,9 @@ const deleteInvoice = async (req, res) => {
     }
 
     invoice.account.invoices.pull(invoice);
+    invoice.client.invoices.pull(invoice);
 
     await invoice.account.save({ session });
-
-    await Invoice.deleteMany({ invoiceId: invoice.id }).session(session);
 
     await Invoice.deleteOne({ id }).session(session);
 

@@ -229,7 +229,7 @@ export const InvoicePageList = () => {
             )}
             render={(_, record: Invoice) => {
               return (
-                <DateField value={record.invoiceDate} format="DD/MM/YYYY" />
+                <DateField value={record.invoiceDate} format="D MMM YYYY" />
               );
             }}
           />
