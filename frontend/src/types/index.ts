@@ -4,7 +4,7 @@ import type { UploadChangeParam } from "antd/lib/upload";
 export type UploadResponse = UploadChangeParam<UploadFile>;
 
 export type AccountForm = {
-  company_name: string;
+  account_name: string;
   owner_name: string;
   owner_email: string;
   country: string;
@@ -31,9 +31,8 @@ export type Account = {
 
 export type Client = {
   id: string;
-  name: string;
-  owner_name: string;
-  owner_email: string;
+  client_name: string;
+  client_email: string;
   country: string;
   address: string;
   phone: string;
@@ -46,7 +45,7 @@ export type Client = {
 
 export type Invoice = {
   id: string;
-  name: string;
+  invoice_name: string;
   invoiceDate: string;
   discount: number;
   tax: number;

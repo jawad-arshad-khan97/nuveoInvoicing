@@ -35,7 +35,7 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
     filters: {
       initial: [
         {
-          field: "owner_email",
+          field: "client_name",
           operator: "contains",
           value: "",
         },
@@ -48,20 +48,14 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
 
   const { selectProps: selectPropsName } = useSelect({
     resource: "clients",
-    optionLabel: "name",
-    optionValue: "name",
-  });
-
-  const { selectProps: selectPropsOwnerName } = useSelect({
-    resource: "clients",
-    optionLabel: "owner_name",
-    optionValue: "owner_name",
+    optionLabel: "client_name",
+    optionValue: "client_name",
   });
 
   const { selectProps: selectPropsAccountName } = useSelect({
     resource: "accounts",
-    optionLabel: "company_name",
-    optionValue: "company_name",
+    optionLabel: "account_name",
+    optionValue: "account_name",
   });
 
   console.log(selectPropsAccountName);
@@ -112,11 +106,15 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
           />
           <Table.Column
             title="Title"
-            dataIndex="name"
-            key="name"
+            dataIndex="client_name"
+            key="client_name"
             sorter
-            defaultSortOrder={getDefaultSortOrder("name", sorters)}
-            defaultFilteredValue={getDefaultFilter("name", filters, "in")}
+            defaultSortOrder={getDefaultSortOrder("client_name", sorters)}
+            defaultFilteredValue={getDefaultFilter(
+              "client_name",
+              filters,
+              "in"
+            )}
             filterDropdown={(props) => (
               <FilterDropdown {...props}>
                 <Select
@@ -128,7 +126,7 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
               </FilterDropdown>
             )}
           />
-          <Table.Column
+          {/* <Table.Column
             title="Owner"
             dataIndex="owner_name"
             key="owner_name"
@@ -145,13 +143,13 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
                 />
               </FilterDropdown>
             )}
-          />
+          /> */}
           <Table.Column
             title="Email"
-            dataIndex="owner_email"
-            key="owner_email"
+            dataIndex="client_email"
+            key="client_email"
             defaultFilteredValue={getDefaultFilter(
-              "owner_email",
+              "client_email",
               filters,
               "contains"
             )}
@@ -190,15 +188,15 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
           />
           <Table.Column
             title="Account"
-            dataIndex="account.company_name"
-            key="account.company_name"
+            dataIndex="account.account_name"
+            key="account.account_name"
             sorter
             defaultSortOrder={getDefaultSortOrder(
-              "account.company_name",
+              "account.account_name",
               sorters
             )}
             defaultFilteredValue={getDefaultFilter(
-              "account.company_name",
+              "account.account_name",
               filters,
               "in"
             )}
@@ -216,7 +214,7 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
               const logoUrl = record?.account?.logo;
               const src = logoUrl ? `${API_URL}${logoUrl}` : null;
               console.log(logoUrl);
-              const name = record?.account?.company_name || "";
+              const name = record?.account?.account_name || "";
 
               return (
                 <Flex align="center" gap={8}>

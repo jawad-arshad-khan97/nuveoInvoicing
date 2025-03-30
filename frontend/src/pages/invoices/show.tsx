@@ -113,7 +113,7 @@ export const InvoicesPageShow = () => {
                     <Typography.Text>From:</Typography.Text>
                     <Flex gap={24}>
                       <Avatar
-                        alt={invoice?.account?.company_name}
+                        alt={invoice?.account?.account_name}
                         size={64}
                         src={logoUrl}
                         shape="square"
@@ -121,7 +121,7 @@ export const InvoicesPageShow = () => {
                           backgroundColor: logoUrl
                             ? "transparent"
                             : getRandomColorFromString(
-                                invoice?.account?.company_name || ""
+                                invoice?.account?.account_name || ""
                               ),
                         }}
                       >
@@ -130,7 +130,7 @@ export const InvoicesPageShow = () => {
                             fontSize: "32px",
                           }}
                         >
-                          {invoice?.account?.company_name?.[0]?.toUpperCase()}
+                          {invoice?.account?.account_name?.[0]?.toUpperCase()}
                         </Typography.Text>
                       </Avatar>
                       <Flex vertical gap={8}>
@@ -139,7 +139,7 @@ export const InvoicesPageShow = () => {
                             fontWeight: 700,
                           }}
                         >
-                          {invoice?.account?.company_name}
+                          {invoice?.account?.account_name}
                         </Typography.Text>
                         <Typography.Text>
                           {invoice?.account?.address}

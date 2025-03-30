@@ -58,8 +58,8 @@ export const AccountsPageCreate = () => {
             }}
           >
             <Form.Item
-              name="company_name"
-              label="Company Name"
+              name="account_name"
+              label="Account Name"
               rules={[{ required: true }]}
             >
               <Input />
@@ -67,25 +67,25 @@ export const AccountsPageCreate = () => {
             <Form.Item
               name="owner_name"
               label="Owner Name"
-              rules={[{ required: true }]}
+              rules={[{ required: false }]}
             >
               <Input />
             </Form.Item>
             <Form.Item
               name="owner_email"
               label="Owner email"
-              rules={[{ required: true, type: "email" }]}
+              rules={[{ required: false, type: "email" }]}
             >
               <Input />
             </Form.Item>
             <Form.Item
               name="address"
               label="Address"
-              rules={[{ required: true }]}
+              rules={[{ required: false }]}
             >
               <Input />
             </Form.Item>
-            <Form.Item name="phone" label="Phone" rules={[{ required: true }]}>
+            <Form.Item name="phone" label="Phone" rules={[{ required: false }]}>
               <InputMask mask="(999) 999-9999">
                 {/* @ts-expect-error  <InputMask /> expects JSX.Element but we are using React.ReactNode */}
                 {(props: InputProps) => (

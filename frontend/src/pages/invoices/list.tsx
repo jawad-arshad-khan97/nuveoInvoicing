@@ -52,20 +52,20 @@ export const InvoicePageList = () => {
 
   const { selectProps: selectPropsAccounts } = useSelect({
     resource: "accounts",
-    optionLabel: "company_name",
-    optionValue: "company_name",
+    optionLabel: "account_name",
+    optionValue: "account_name",
   });
 
   const { selectProps: selectPropsClients } = useSelect({
     resource: "clients",
-    optionLabel: "name",
-    optionValue: "name",
+    optionLabel: "client_name",
+    optionValue: "client_name",
   });
 
   const { selectProps: selectPropsInvoices } = useSelect({
     resource: "invoices",
-    optionLabel: "name",
-    optionValue: "name",
+    optionLabel: "invoice_name",
+    optionValue: "invoice_name",
   });
   const { show, visible, close } = useModal();
 
@@ -131,10 +131,10 @@ export const InvoicePageList = () => {
           />
           <Table.Column
             title="Account"
-            dataIndex="account.company_name"
-            key="account.company_name"
+            dataIndex="account.account_name"
+            key="account.account_name"
             defaultFilteredValue={getDefaultFilter(
-              "account.company_name",
+              "account.account_name",
               filters,
               "in"
             )}
@@ -151,7 +151,7 @@ export const InvoicePageList = () => {
             render={(_, record: Invoice) => {
               const logoUrl = record?.account?.logo;
               const src = logoUrl ? `${API_URL}${logoUrl}` : undefined;
-              const name = record?.account?.company_name;
+              const name = record?.account?.account_name;
 
               return (
                 <Flex align="center" gap={8}>
@@ -176,13 +176,15 @@ export const InvoicePageList = () => {
           />
           <Table.Column
             title="Client"
-            dataIndex="client.name"
-            key="client.name"
+            dataIndex="client.client_name"
+            key="client.client_name"
             render={(_, record: Invoice) => {
-              return <Typography.Text>{record.client?.name}</Typography.Text>;
+              return (
+                <Typography.Text>{record.client?.client_name}</Typography.Text>
+              );
             }}
             defaultFilteredValue={getDefaultFilter(
-              "company_name",
+              "client_name",
               filters,
               "in"
             )}
@@ -190,7 +192,7 @@ export const InvoicePageList = () => {
               <FilterDropdown {...props}>
                 <Select
                   mode="multiple"
-                  placeholder="Search Company Name"
+                  placeholder="Search Client Name"
                   style={{ width: 220 }}
                   {...selectPropsClients}
                 />
@@ -199,17 +201,21 @@ export const InvoicePageList = () => {
           />
           <Table.Column
             title="Invoice"
-            dataIndex="client.name"
-            key="invoice.name"
+            dataIndex="invoice.invoice_name"
+            key="invoice.invoice_name"
             render={(_, record: Invoice) => {
-              return <Typography.Text>{record?.name}</Typography.Text>;
+              return <Typography.Text>{record?.invoice_name}</Typography.Text>;
             }}
-            defaultFilteredValue={getDefaultFilter("name", filters, "in")}
+            defaultFilteredValue={getDefaultFilter(
+              "invoice_name",
+              filters,
+              "in"
+            )}
             filterDropdown={(props) => (
               <FilterDropdown {...props}>
                 <Select
                   mode="multiple"
-                  placeholder="Search Invice Name"
+                  placeholder="Search Invoice Name"
                   style={{ width: 220 }}
                   {...selectPropsInvoices}
                 />

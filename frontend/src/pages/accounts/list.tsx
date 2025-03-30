@@ -43,10 +43,10 @@ export const AccountsPageList = ({ children }: PropsWithChildren) => {
     },
   });
 
-  const { selectProps: companyNameSelectProps } = useSelect({
+  const { selectProps: accountNameSelectProps } = useSelect({
     resource: "accounts",
-    optionLabel: "company_name",
-    optionValue: "company_name",
+    optionLabel: "account_name",
+    optionValue: "account_name",
   });
 
   const { selectProps: selectPropsOwnerName } = useSelect({
@@ -101,12 +101,12 @@ export const AccountsPageList = ({ children }: PropsWithChildren) => {
           />
           <Table.Column
             title="Title"
-            dataIndex="company_name"
-            key="company_name"
+            dataIndex="account_name"
+            key="account_name"
             sorter
-            defaultSortOrder={getDefaultSortOrder("company_name", sorters)}
+            defaultSortOrder={getDefaultSortOrder("account_name", sorters)}
             defaultFilteredValue={getDefaultFilter(
-              "company_name",
+              "account_name",
               filters,
               "in"
             )}
@@ -114,9 +114,9 @@ export const AccountsPageList = ({ children }: PropsWithChildren) => {
               <FilterDropdown {...props}>
                 <Select
                   mode="multiple"
-                  placeholder="Search Company Name"
+                  placeholder="Search Account Name"
                   style={{ width: 220 }}
-                  {...companyNameSelectProps}
+                  {...accountNameSelectProps}
                 />
               </FilterDropdown>
             )}

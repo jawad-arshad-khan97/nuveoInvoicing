@@ -32,16 +32,12 @@ const getAllInvoices = async (req, res) => {
     }
 
     const {
-      "filters[owner_email][$containsi]": ownerEmailFilter,
-      "filters[owner_name][$containsi]": ownerNameFilter,
-      "filters[name][$containsi]": nameFilter,
+      "filters[invoice_name][$containsi]": invoiceNameFilter,
       "filters[phone][$containsi]": phoneFilter,
     } = req.query;
-    if (ownerEmailFilter)
-      query.owner_email = { $regex: new RegExp(ownerEmailFilter, "i") };
-    if (ownerNameFilter)
-      query.owner_name = { $regex: new RegExp(ownerNameFilter, "i") };
-    if (nameFilter) query.name = { $regex: new RegExp(nameFilter, "i") };
+
+    if (invoiceNameFilter)
+      query.invoice_name = { $regex: new RegExp(invoiceNameFilter, "i") };
     if (phoneFilter) query.phone = { $regex: new RegExp(phoneFilter, "i") };
     Object.keys(req.query).forEach((key) => {
       if (key.endsWith("_like")) {
@@ -50,18 +46,18 @@ const getAllInvoices = async (req, res) => {
       }
     });
 
-    const { id, name, owner_name } = req.query;
+    const { id, invoice_name } = req.query;
     if (id) {
       query.id = { $regex: new RegExp(`^${id}$`, "i") };
     }
 
     const {
-      ["account.company_name"]: accountCompanyName,
+      ["account.account_name"]: accountName,
       ["client.name"]: clientName,
     } = req.query;
-    if (accountCompanyName) {
+    if (accountName) {
       const account = await Account.findOne({
-        company_name: new RegExp(`^${accountCompanyName}$`, "i"),
+        account_name: new RegExp(`^${accountName}$`, "i"),
       }).select("_id");
 
       if (account) {
@@ -70,22 +66,16 @@ const getAllInvoices = async (req, res) => {
     }
     if (clientName) {
       const client = await Client.findOne({
-        company_name: new RegExp(`^${clientName}$`, "i"),
+        account_name: new RegExp(`^${clientName}$`, "i"),
       }).select("_id");
 
       if (client) {
         query.client = client._id;
       }
     }
-    if (name) {
-      query.name = { $regex: new RegExp(`^${name}$`, "i") }; // Exact match for title, case-insensitive
+    if (invoice_name) {
+      query.invoice_name = { $regex: new RegExp(`^${invoice_name}$`, "i") }; // Exact match for title, case-insensitive
     }
-    // if (owner_name) {
-    //   query.owner_name = { $regex: new RegExp(`^${owner_name}$`, "i") }; // Partial match for owner, case-insensitive
-    // }
-    // if (owner_email) {
-    //   query.owner_email = { $regex: new RegExp(`^${owner_email}$`, "i") }; // Partial match for owner, case-insensitive
-    // }
 
     let queryBuilder = Invoice.find(query)
       .limit(options.limit)
@@ -130,7 +120,7 @@ const createInvoice = async (req, res) => {
   session.startTransaction();
   try {
     const {
-      name,
+      invoice_name,
       account,
       client,
       services,
@@ -145,7 +135,14 @@ const createInvoice = async (req, res) => {
       userId = "",
     } = req.body;
 
-    if (!account || !client || !invoiceDate || !services || !total) {
+    if (
+      !account ||
+      !invoice_name ||
+      !client ||
+      !invoiceDate ||
+      !services ||
+      !total
+    ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -164,7 +161,7 @@ const createInvoice = async (req, res) => {
 
     const newInvoice = new Invoice({
       id: nextId,
-      name,
+      invoice_name,
       account,
       client,
       status,
@@ -214,8 +211,21 @@ const updateInvoice = async (req, res) => {
   session.startTransaction();
   try {
     const { id } = req.params;
-    const { account, client, date, services, tax, subtotal, total, userId } =
-      req.body;
+    const {
+      account,
+      client,
+      invoice_name,
+      invoiceDate,
+      status,
+      custom_id,
+      currency,
+      note,
+      services,
+      tax,
+      subtotal,
+      total,
+      userId,
+    } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -259,7 +269,7 @@ const updateInvoice = async (req, res) => {
     // Update the invoice
     invoice.account = account;
     invoice.client = client;
-    invoice.date = date;
+    invoice.invoiceDate = invoiceDate;
     invoice.services = [
       ...updatedServices.map((s) => s._id),
       ...newServiceDocs.map((s) => s._id),
@@ -267,6 +277,10 @@ const updateInvoice = async (req, res) => {
     invoice.tax = tax;
     invoice.subtotal = subtotal;
     invoice.total = total;
+    invoice.status = status;
+    invoice.currency = currency;
+    invoice.invoice_name = invoice_name;
+    invoice.note = invoice.note;
     invoice.creator = userId;
 
     await invoice.save({ session });

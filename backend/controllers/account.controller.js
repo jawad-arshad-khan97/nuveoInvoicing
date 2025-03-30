@@ -43,15 +43,15 @@ const getAllAccounts = async (req, res) => {
     const {
       "filters[owner_email][$containsi]": ownerEmailFilter,
       "filters[owner_name][$containsi]": ownerNameFilter,
-      "filters[company_name][$containsi]": companyNameFilter,
+      "filters[account_name][$containsi]": accountNameFilter,
       "filters[phone][$containsi]": phoneFilter,
     } = req.query;
     if (ownerEmailFilter)
       query.owner_email = { $regex: new RegExp(ownerEmailFilter, "i") };
     if (ownerNameFilter)
       query.owner_name = { $regex: new RegExp(ownerNameFilter, "i") };
-    if (companyNameFilter)
-      query.company_name = { $regex: new RegExp(companyNameFilter, "i") };
+    if (accountNameFilter)
+      query.account_name = { $regex: new RegExp(accountNameFilter, "i") };
     if (phoneFilter) query.phone = { $regex: new RegExp(phoneFilter, "i") };
     Object.keys(req.query).forEach((key) => {
       if (key.endsWith("_like")) {
@@ -60,12 +60,12 @@ const getAllAccounts = async (req, res) => {
       }
     });
 
-    const { id, company_name, owner_name } = req.query;
+    const { id, account_name, owner_name } = req.query;
     if (id) {
       query.id = { $regex: new RegExp(`^${id}$`, "i") };
     }
-    if (company_name) {
-      query.company_name = { $regex: new RegExp(`^${company_name}$`, "i") }; // Exact match for title, case-insensitive
+    if (account_name) {
+      query.account_name = { $regex: new RegExp(`^${account_name}$`, "i") }; // Exact match for title, case-insensitive
     }
     if (owner_name) {
       query.owner_name = { $regex: new RegExp(`^${owner_name}$`, "i") }; // Partial match for owner, case-insensitive
@@ -125,7 +125,7 @@ const getAccountDetail = async (req, res) => {
 const createAccount = async (req, res) => {
   try {
     const {
-      company_name,
+      account_name,
       owner_name,
       owner_email,
       address,
@@ -136,7 +136,7 @@ const createAccount = async (req, res) => {
       userId = "",
     } = req.body;
 
-    if (!company_name || !owner_name || !owner_email || !address || !phone) {
+    if (!account_name) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -153,7 +153,7 @@ const createAccount = async (req, res) => {
 
     const newAccount = new Account({
       id: nextId,
-      company_name,
+      account_name,
       owner_name,
       owner_email,
       address,
@@ -181,7 +181,7 @@ const updateAccount = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      company_name,
+      account_name,
       owner_name,
       owner_email,
       address,
@@ -226,7 +226,7 @@ const updateAccount = async (req, res) => {
     }
 
     // Add other fields to `updatedFields` if they are provided
-    if (company_name) updatedFields.company_name = company_name;
+    if (account_name) updatedFields.account_name = account_name;
     if (owner_name) updatedFields.owner_name = owner_name;
     if (owner_email) updatedFields.owner_email = owner_email;
     if (address) updatedFields.address = address;

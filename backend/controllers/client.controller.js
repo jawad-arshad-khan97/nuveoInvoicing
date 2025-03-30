@@ -31,16 +31,13 @@ const getAllClients = async (req, res) => {
     }
 
     const {
-      "filters[owner_email][$containsi]": ownerEmailFilter,
-      "filters[owner_name][$containsi]": ownerNameFilter,
-      "filters[name][$containsi]": nameFilter,
+      "filters[client_email][$containsi]": clientEmailFilter,
+      "filters[client_name][$containsi]": nameFilter,
       "filters[phone][$containsi]": phoneFilter,
     } = req.query;
-    if (ownerEmailFilter)
-      query.owner_email = { $regex: new RegExp(ownerEmailFilter, "i") };
-    if (ownerNameFilter)
-      query.owner_name = { $regex: new RegExp(ownerNameFilter, "i") };
-    if (nameFilter) query.name = { $regex: new RegExp(nameFilter, "i") };
+    if (clientEmailFilter)
+      query.client_email = { $regex: new RegExp(clientEmailFilter, "i") };
+    if (nameFilter) query.client_name = { $regex: new RegExp(nameFilter, "i") };
     if (phoneFilter) query.phone = { $regex: new RegExp(phoneFilter, "i") };
     Object.keys(req.query).forEach((key) => {
       if (key.endsWith("_like")) {
@@ -49,30 +46,27 @@ const getAllClients = async (req, res) => {
       }
     });
 
-    const { ["account.company_name"]: accountCompanyName } = req.query;
+    const { ["account.account_name"]: accountName } = req.query;
 
-    const { id, name, owner_name } = req.query;
+    const { id, client_name, client_email } = req.query;
     if (id) {
       query.id = { $regex: new RegExp(`^${id}$`, "i") };
     }
-    if (name) {
-      query.name = { $regex: new RegExp(`^${name}$`, "i") }; // Exact match for title, case-insensitive
+    if (client_name) {
+      query.client_name = { $regex: new RegExp(`^${client_name}$`, "i") }; // Exact match for title, case-insensitive
     }
-    if (accountCompanyName) {
+    if (accountName) {
       const account = await Account.findOne({
-        company_name: new RegExp(`^${accountCompanyName}$`, "i"),
+        account_name: new RegExp(`^${accountName}$`, "i"),
       }).select("_id");
 
       if (account) {
         query.account = account._id;
       }
     }
-    if (owner_name) {
-      query.owner_name = { $regex: new RegExp(`^${owner_name}$`, "i") };
+    if (client_email) {
+      query.client_email = { $regex: new RegExp(`^${client_email}$`, "i") };
     }
-    // if (owner_email) {
-    //   query.owner_email = { $regex: new RegExp(`^${owner_email}$`, "i") };
-    // }
 
     let queryBuilder = Client.find(query)
       .limit(options.limit)
@@ -123,16 +117,15 @@ const createClient = async (req, res) => {
   try {
     const {
       account,
-      owner_email,
-      owner_name,
+      client_email,
+      client_name,
       address,
       phone,
-      name = "",
       userId = "",
       logo,
     } = req.body;
 
-    if (!owner_name || !owner_name || !owner_email || !address || !phone) {
+    if (!client_name) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -143,12 +136,11 @@ const createClient = async (req, res) => {
 
     const newClient = new Client({
       id: nextId,
-      owner_name,
-      owner_email,
+      client_name,
+      client_email,
       account,
       address,
       phone,
-      name,
       creator: userId,
       logo,
     });
@@ -170,7 +162,7 @@ const createClient = async (req, res) => {
     await session.abortTransaction();
     session.endSession();
     if (error.code === 11000) {
-      return res.status(409).json({ message: "Owner email already exists" });
+      return res.status(409).json({ message: "Client email already exists" });
     }
     res.status(500).json({ message: error.message });
   }
@@ -181,16 +173,8 @@ const updateClient = async (req, res) => {
   session.startTransaction();
   try {
     const { id } = req.params;
-    const {
-      name,
-      owner_name,
-      owner_email,
-      address,
-      phone,
-      account,
-      logo,
-      userId,
-    } = req.body;
+    const { client_name, client_email, address, phone, account, logo, userId } =
+      req.body;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -206,9 +190,8 @@ const updateClient = async (req, res) => {
 
     const updatedFields = {};
 
-    if (name) updatedFields.name = name;
-    if (owner_name) updatedFields.owner_name = owner_name;
-    if (owner_email) updatedFields.owner_email = owner_email;
+    if (client_name) updatedFields.client_name = client_name;
+    if (client_email) updatedFields.client_email = client_email;
     if (address) updatedFields.address = address;
     if (phone) updatedFields.phone = phone;
     if (account) updatedFields.account = account;
@@ -242,7 +225,7 @@ const updateClient = async (req, res) => {
     await session.abortTransaction();
     session.endSession();
     if (error.code === 11000) {
-      return res.status(409).json({ message: "Owner email already exists" });
+      return res.status(409).json({ message: "Client email already exists" });
     }
     res.status(500).json({ message: error.message });
   }

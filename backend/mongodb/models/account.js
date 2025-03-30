@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 
 const AccountSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
-  company_name: { type: String, required: true },
-  owner_name: { type: String, required: true },
-  owner_email: { type: String, required: true },
+  account_name: { type: String, required: true },
+  owner_name: { type: String, required: false },
+  owner_email: { type: String, required: false },
   logo: { type: String, required: false },
   country: { type: String, required: false },
   address: { type: String, required: false },

@@ -84,7 +84,7 @@ export const AccountsPageEdit = () => {
             <Flex gap={16}>
               <FormItemUploadLogo
                 isLoading={isLoading}
-                label={account?.company_name || " "}
+                label={account?.account_name || " "}
                 onUpload={() => {
                   formProps.form?.submit();
                 }}
@@ -92,7 +92,7 @@ export const AccountsPageEdit = () => {
               <FormItemEditableText
                 loading={isLoading}
                 formItemProps={{
-                  name: "company_name",
+                  name: "account_name",
                   rules: [{ required: true }],
                 }}
               />
@@ -123,7 +123,7 @@ export const AccountsPageEdit = () => {
                 formItemProps={{
                   name: "owner_name",
                   label: "Owner name",
-                  rules: [{ required: true }],
+                  rules: [{ required: false }],
                 }}
               />
               <Divider style={{ margin: 0 }} />
@@ -134,7 +134,7 @@ export const AccountsPageEdit = () => {
                 formItemProps={{
                   name: "owner_email",
                   label: "Owner email",
-                  rules: [{ required: true }],
+                  rules: [{ required: false }],
                 }}
               />
               <Divider style={{ margin: 0 }} />
@@ -146,7 +146,7 @@ export const AccountsPageEdit = () => {
                 formItemProps={{
                   name: "address",
                   label: "Address",
-                  rules: [{ required: true }],
+                  rules: [{ required: false }],
                 }}
               />
               <Divider style={{ margin: 0 }} />
@@ -157,7 +157,7 @@ export const AccountsPageEdit = () => {
                 formItemProps={{
                   name: "phone",
                   label: "Phone",
-                  rules: [{ required: true }],
+                  rules: [{ required: false }],
                 }}
               />
             </Card>
@@ -199,16 +199,15 @@ export const AccountsPageEdit = () => {
                 rowKey={"id"}
               >
                 <Table.Column title="ID" dataIndex="id" key="id" />
-                <Table.Column title="Client" dataIndex="name" key="name" />
                 <Table.Column
-                  title="Owner"
-                  dataIndex="owner_name"
-                  key="owner_name"
+                  title="Client"
+                  dataIndex="client_name"
+                  key="client_name"
                 />
                 <Table.Column
                   title="Email"
-                  dataIndex="owner_email"
-                  key="owner_email"
+                  dataIndex="client_email"
+                  key="client_email"
                 />
                 <Table.Column
                   key="actions"
@@ -264,16 +263,16 @@ export const AccountsPageEdit = () => {
                   title="Client"
                   dataIndex="client"
                   key="client"
-                  render={(client) => client?.name}
+                  render={(client) => client?.client_name}
                 />
                 <Table.Column
                   title="Amount"
                   dataIndex="total"
                   key="total"
-                  render={(total) => (
+                  render={(total, record) => (
                     <NumberField
                       value={total}
-                      options={{ style: "currency", currency: "USD" }}
+                      options={{ style: "currency", currency: record.currency }}
                     />
                   )}
                 />

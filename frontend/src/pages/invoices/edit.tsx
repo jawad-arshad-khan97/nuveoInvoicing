@@ -55,13 +55,13 @@ export const InvoicesPageEdit = () => {
 
   const { selectProps: selectPropsClients } = useSelect({
     resource: "clients",
-    optionLabel: "name",
+    optionLabel: "client_name",
     optionValue: "_id",
   });
 
   const { selectProps: selectPropsAccounts } = useSelect({
     resource: "accounts",
-    optionLabel: "company_name",
+    optionLabel: "account_name",
     optionValue: "_id",
   });
 
@@ -227,7 +227,7 @@ export const InvoicesPageEdit = () => {
             {/* <Row className={styles.fromToContainer} gutter={[24, 16]}>
               <Col xs={24} md={12}>
                 <Form.Item
-                  name={["account", "company_name"]}
+                  name={["account", "account_name"]}
                   label="From (Account Name)"
                   rules={[
                     { required: true, message: "Account name is required" },
@@ -283,7 +283,7 @@ export const InvoicesPageEdit = () => {
             >
               <Form.Item
                 label="Account"
-                name={["account", "company_name"]}
+                name={["account", "account_name"]}
                 rules={[{ required: true }]}
                 style={{ flex: 1, minWidth: "250px" }}
               >
@@ -294,7 +294,7 @@ export const InvoicesPageEdit = () => {
               </Form.Item>
               <Form.Item
                 label="Client"
-                name={["client", "name"]}
+                name={["client", "client_name"]}
                 rules={[{ required: true }]}
                 style={{ flex: 1, minWidth: "250px" }}
               >
@@ -367,7 +367,7 @@ export const InvoicesPageEdit = () => {
             >
               <Form.Item
                 label="Invoice Name"
-                name="name"
+                name="invoice_name"
                 rules={[{ required: true }]}
                 style={{ flex: 1, minWidth: "250px" }}
               >

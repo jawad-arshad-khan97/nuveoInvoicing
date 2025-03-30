@@ -39,7 +39,7 @@ export const ClientsPageEdit = () => {
 
   const { selectProps: selectPropsAccount } = useSelect({
     resource: "accounts",
-    optionLabel: "company_name",
+    optionLabel: "account_name",
     optionValue: "id",
   });
 
@@ -86,7 +86,7 @@ export const ClientsPageEdit = () => {
               <FormItemEditableText
                 loading={isLoading}
                 formItemProps={{
-                  name: "name",
+                  name: "client_name",
                   rules: [{ required: true }],
                 }}
               />
@@ -124,20 +124,10 @@ export const ClientsPageEdit = () => {
                   getValueProps: (value) => {
                     return {
                       value: value?.id,
-                      label: value?.company_name,
+                      label: value?.account_name,
                     };
                   },
                   label: "Account",
-                  rules: [{ required: true }],
-                }}
-              />
-              <FormItemEditableInputText
-                loading={isLoading}
-                icon={<UserOutlined />}
-                placeholder="Add owner name"
-                formItemProps={{
-                  name: "owner_name",
-                  label: "Owner name",
                   rules: [{ required: true }],
                 }}
               />
@@ -147,9 +137,9 @@ export const ClientsPageEdit = () => {
                 icon={<MailOutlined />}
                 placeholder="Add email"
                 formItemProps={{
-                  name: "owner_email",
-                  label: "Owner email",
-                  rules: [{ required: true, type: "email" }],
+                  name: "client_email",
+                  label: "Client email",
+                  rules: [{ required: false, type: "email" }],
                 }}
               />
               <Divider style={{ margin: 0 }} />
@@ -161,7 +151,7 @@ export const ClientsPageEdit = () => {
                 formItemProps={{
                   name: "address",
                   label: "Address",
-                  rules: [{ required: true }],
+                  rules: [{ required: false }],
                 }}
               />
               <Divider style={{ margin: 0 }} />
@@ -172,7 +162,7 @@ export const ClientsPageEdit = () => {
                 formItemProps={{
                   name: "phone",
                   label: "Phone",
-                  rules: [{ required: true }],
+                  rules: [{ required: false }],
                 }}
               />
             </Card>
@@ -226,16 +216,16 @@ export const ClientsPageEdit = () => {
                   title="Client"
                   dataIndex="client"
                   key="client"
-                  render={(client) => client?.name}
+                  render={(client) => client?.client_name}
                 />
                 <Table.Column
                   title="Amount"
                   dataIndex="total"
                   key="total"
-                  render={(total) => (
+                  render={(total, record) => (
                     <NumberField
                       value={total}
-                      options={{ style: "currency", currency: "USD" }}
+                      options={{ style: "currency", currency: record.currency }}
                     />
                   )}
                 />

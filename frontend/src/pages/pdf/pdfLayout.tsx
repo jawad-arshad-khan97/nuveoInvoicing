@@ -45,7 +45,7 @@ export const PdfLayout: React.FC<PdfProps> = ({ record }) => {
               <Text style={styles.inoviceForFromTitle}>From:</Text>
               <View>
                 <Text style={styles.inoviceForFromText}>
-                  {record?.account?.company_name}
+                  {record?.account?.account_name}
                 </Text>
                 <Text style={styles.inoviceForFromText}>
                   {record?.account?.address}, {record?.account?.country}

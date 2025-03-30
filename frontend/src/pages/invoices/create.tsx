@@ -44,13 +44,13 @@ export const InvoicesPageCreate = () => {
 
   const { selectProps: selectPropsAccounts } = useSelect({
     resource: "accounts",
-    optionLabel: "company_name",
+    optionLabel: "account_name",
     optionValue: "_id",
   });
 
   const { selectProps: selectPropsClients } = useSelect({
     resource: "clients",
-    optionLabel: "name",
+    optionLabel: "client_name",
     optionValue: "_id",
   });
 
@@ -296,7 +296,7 @@ export const InvoicesPageCreate = () => {
             >
               <Form.Item
                 label="Invoice Name"
-                name="name"
+                name="invoice_name"
                 rules={[{ required: true }]}
                 style={{ flex: 1, minWidth: "250px" }}
               >

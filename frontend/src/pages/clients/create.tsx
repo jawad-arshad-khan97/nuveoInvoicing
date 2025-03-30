@@ -18,7 +18,7 @@ export const ClientsPageCreate = () => {
 
   const { selectProps: selectPropsAccount } = useSelect({
     resource: "accounts",
-    optionLabel: "company_name",
+    optionLabel: "account_name",
     optionValue: "_id",
   });
 
@@ -72,34 +72,27 @@ export const ClientsPageCreate = () => {
             />
           </Form.Item>
           <Form.Item
-            name="name"
-            label="Client title"
+            name="client_name"
+            label="Client Name"
             rules={[{ required: true }]}
           >
             <Input placeholder="Please enter client title" />
           </Form.Item>
           <Form.Item
-            name="owner_name"
-            label="Owner name"
-            rules={[{ required: true }]}
+            name="client_email"
+            label="Client email"
+            rules={[{ required: false, type: "email" }]}
           >
-            <Input placeholder="Please enter owner name" />
-          </Form.Item>
-          <Form.Item
-            name="owner_email"
-            label="Owner email"
-            rules={[{ required: true, type: "email" }]}
-          >
-            <Input placeholder="Please enter owner email" />
+            <Input placeholder="Please enter client email" />
           </Form.Item>
           <Form.Item
             name="address"
             label="Address"
-            rules={[{ required: true }]}
+            rules={[{ required: false }]}
           >
             <Input placeholder="Please enter address" />
           </Form.Item>
-          <Form.Item name="phone" label="Phone" rules={[{ required: true }]}>
+          <Form.Item name="phone" label="Phone" rules={[{ required: false }]}>
             <InputMask mask="(999) 999-9999">
               {/* @ts-expect-error  <InputMask /> expects JSX.Element but we are using React.ReactNode */}
               {(props: InputProps) => (

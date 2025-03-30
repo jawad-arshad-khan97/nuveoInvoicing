@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const InvoiceSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
+  invoice_name: { type: String, required: true },
   createdDate: { type: Date, required: true, default: Date.now },
   updatedDate: { type: Date, required: false },
   invoiceDate: { type: Date, required: true },
