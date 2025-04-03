@@ -31,6 +31,7 @@ import {
   InvoicesPageCreate,
   InvoicesPageShow,
 } from "@/pages/invoices";
+import { DashboardPage } from "./pages/dashboard";
 import dataProvider from "@refinedev/simple-rest";
 import { authProvider } from "@/providers/auth-provider";
 import { ConfigProvider } from "@/providers/config-provider";
@@ -46,6 +47,7 @@ import {
   TeamOutlined,
   FileAddOutlined,
   AuditOutlined,
+  DashboardOutlined,
 } from "@ant-design/icons";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Login } from "./providers/auth-provider/login";
@@ -74,6 +76,14 @@ const App: React.FC = () => {
             authProvider={createProvider}
             dataProvider={dataProvider(BASE_URL_API_V1)}
             resources={[
+              {
+                name: "dashboard",
+                list: "/",
+                meta: {
+                  label: "Dashboard",
+                  icon: <DashboardOutlined />,
+                },
+              },
               {
                 name: "Invoicing",
                 icon: <AuditOutlined />,
@@ -115,6 +125,16 @@ const App: React.FC = () => {
                 },
                 icon: <FileAddOutlined />,
               },
+              {
+                name: "accounts",
+                list: "/accounts",
+                create: "/accounts/new",
+                edit: "/accounts/:id/edit",
+                meta: {
+                  parent: "Invoicing",
+                },
+                icon: <BankOutlined />,
+              },
             ]}
             notificationProvider={useNotificationProvider}
             options={{
@@ -149,7 +169,25 @@ const App: React.FC = () => {
                   </Authenticated>
                 }
               >
+                <Route index element={<DashboardPage />} />
                 <Route index element={<NavigateToResource />} />
+
+                <Route
+                  path="/accounts"
+                  element={
+                    <AccountsPageList>
+                      <Outlet />
+                    </AccountsPageList>
+                  }
+                >
+                  <Route index element={null} />
+                  <Route path="new" element={<AccountsPageCreate />} />
+                </Route>
+                <Route
+                  path="/accounts/:id/edit"
+                  element={<AccountsPageEdit />}
+                />
+
                 <Route
                   path="/accounts"
                   element={
