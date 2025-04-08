@@ -4,7 +4,6 @@ import Invoice from "../mongodb/models/invoice.js";
 const getMonthlyIncomeDetails = async (req, res) => {
   try {
     const invoices = await Invoice.find({}).limit(5); // Debugging: Check stored data
-    console.log("Sample invoices:", invoices);
 
     const incomeData = await Invoice.aggregate([
       {

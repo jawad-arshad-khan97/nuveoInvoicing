@@ -85,6 +85,13 @@ export type User = {
   updatedDate: string;
 };
 
+export type IEvent = {
+  id: number;
+  title: string;
+  date: string;
+  type: "warning" | "success" | "error";
+}
+
 export type Media = {
   id: string;
   name: string;

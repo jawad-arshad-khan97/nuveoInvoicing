@@ -96,3 +96,30 @@
     box-shadow: none !important;
   }
 }
+
+.apexcharts-menu {
+  background-color: #1e1e1e !important;
+  border: 1px solid #444 !important;
+}
+
+.apexcharts-menu-item {
+  color: #fff !important;
+}
+
+.apexcharts-menu-item:hover {
+  background-color: #333 !important;
+}
+
+/* styles.css or in your global CSS file */
+.apexcharts-tooltip {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #d9d9d9 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.apexcharts-tooltip-title {
+  background-color: #f0f0f0 !important;
+  color: #333333 !important;
+}
+

@@ -31,7 +31,7 @@ export const Search = () => {
     },
     filters: [
       {
-        field: "company_name",
+        field: "account_name",
         operator: "contains",
         value: searchText,
       },
@@ -54,7 +54,7 @@ export const Search = () => {
     },
     filters: [
       {
-        field: "name",
+        field: "client_name",
         operator: "contains",
         value: searchText,
       },
@@ -90,11 +90,11 @@ export const Search = () => {
             imageSrc = `${API_URL}${data.logo}`;
           }
           to = editUrl(data.resource, data.id);
-          title = data.company_name;
+          title = data.account_name;
         }
 
         if (data.resource === "clients") {
-          title = data.name;
+          title = data.client_name;
           to = editUrl(data.resource, data.id);
         }
 
@@ -106,15 +106,15 @@ export const Search = () => {
                   shape="square"
                   size={24}
                   src={imageSrc}
-                  alt={data.company_name}
+                  alt={data.account_name}
                   style={{
                     backgroundColor: getRandomColorFromString(
-                      data.company_name
+                      data.account_name
                     ),
                   }}
                 >
                   <Typography.Text>
-                    {data.company_name?.[0]?.toUpperCase()}
+                    {data.account_name?.[0]?.toUpperCase()}
                   </Typography.Text>
                 </Avatar>
               )}
