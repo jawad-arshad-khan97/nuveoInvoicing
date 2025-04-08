@@ -7,7 +7,7 @@ export const DashboardPage: React.FC = () => {
     return (
         <Row gutter={[16, 16]}>
             <Col xs={24} lg={8}>
-                <Card title="Events" bordered={false}>
+                <Card title="Appointments" bordered={false}>
                     <CalendarPage/>
                 </Card>
             </Col>

@@ -26,7 +26,6 @@ const getMonthlyIncomeDetails = async (req, res) => {
       { $sort: { _id: 1 } }, // Sort by month
     ]);
 
-    console.log("Aggregated income data:", incomeData); // Debugging
 
     // Format data for frontend
     const formattedData = incomeData.map((item) => ({

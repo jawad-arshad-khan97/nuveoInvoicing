@@ -58,8 +58,6 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
     optionValue: "account_name",
   });
 
-  console.log(selectPropsAccountName);
-
   return (
     <>
       <List
@@ -213,7 +211,6 @@ export const ClientsPageList = ({ children }: PropsWithChildren) => {
             render={(_, record: Client) => {
               const logoUrl = record?.account?.logo;
               const src = logoUrl ? `${API_URL}${logoUrl}` : null;
-              console.log(logoUrl);
               const name = record?.account?.account_name || "";
 
               return (

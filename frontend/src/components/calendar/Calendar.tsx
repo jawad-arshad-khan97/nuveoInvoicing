@@ -1,22 +1,72 @@
-import {useList, useNavigation} from "@refinedev/core";
+import {useList, useNavigation, useDelete} from "@refinedev/core";
 
-import {Show} from "@refinedev/antd";
-import {Badge, type BadgeProps, Calendar} from "antd";
+import {Show, useModalForm } from "@refinedev/antd";
+import {Badge, type BadgeProps, Calendar, Modal,
+    Button,} from "antd";
 import type {CalendarMode} from "antd/lib/calendar/generateCalendar";
 import dayjs from "dayjs";
 
 import type {IEvent} from "../../types/index";
+import { EventForm } from "../../components/event/eventForm";
 
 import "./index.css";
 
 export const CalendarPage = () => {
-    const {show, create} = useNavigation();
-    const {data} = useList<IEvent>({
+    const {data, refetch} = useList<IEvent>({
         resource: "events",
         pagination: {
             pageSize: 100,
         },
     });
+
+    const { mutate: deleteEvent } = useDelete();
+
+    const {
+        show: showCreate,
+        modalProps: createModalProps,
+        formProps: createFormProps,
+    } = useModalForm<IEvent>({
+        action: "create",
+        resource: "events",
+        onMutationSuccess: () => refetch?.(),
+    });
+
+    const {
+        show: showEdit,
+        modalProps: editModalProps,
+        formProps: editFormProps,
+    } = useModalForm<IEvent>({
+        action: "edit",
+        resource: "events",
+        onMutationSuccess: () => refetch?.(),
+    });
+
+    const handleDateSelect = (date: dayjs.Dayjs) => {
+        showCreate();
+        createFormProps.form?.setFieldsValue({
+            date: dayjs(date),
+        });
+    };
+
+    const handleEventClick = (eventId: number) => {
+        showEdit(eventId);
+    };
+
+    // const handleDelete = (id: number) => {
+    //     Modal.confirm({
+    //         title: "Delete Event?",
+    //         content: "Are you sure you want to delete this event?",
+    //         okText: "Delete",
+    //         okType: "danger",
+    //         cancelText: "Cancel",
+    //         onOk: async () => {
+    //             await deleteEvent({ resource: "events", id });
+    //             editModalProps.onCancel(); // close modal
+    //             refetch?.();
+    //         },
+    //     });
+    // };
+
 
     const monthCellRender = (value: dayjs.Dayjs) => {
         const listData =
@@ -42,9 +92,10 @@ export const CalendarPage = () => {
                 {listData?.map((item) => (
                     <li key={item.id}>
                         <Badge
-                            status={item.type as BadgeProps["status"]}
-                            text={item.title}
-                            onClick={() => show("events", item.id)}
+                            // status={item.type as BadgeProps["status"]}
+                            text={item.name}
+                            onClick={() => handleEventClick(item.id)}
+                            style={{ cursor: "pointer" }}
                         />
                     </li>
                 ))}
@@ -54,12 +105,32 @@ export const CalendarPage = () => {
 
     return (
         // <Show title={false} headerProps={{extra: null}}>
+        <>
             <Calendar
                 onPanelChange={panelChange}
-                onSelect={(date) => create("events", "replace", { date: date.format() })}
+                onSelect={handleDateSelect}
                 dateCellRender={dateCellRender}
                 monthCellRender={monthCellRender}
             />
+    <Modal
+        {...createModalProps}
+        title="Create Event"
+        okButtonProps={{ form: "create-event-form", htmlType: "submit" }}
+        cancelButtonProps={{ onClick: createModalProps.onCancel }}
+    >
+        <EventForm formProps={{ ...createFormProps, id: "create-event-form" }} />
+    </Modal>
+
+    {/* Edit Modal */}
+    <Modal
+        {...editModalProps}
+        title="Edit Event"
+        okButtonProps={{ form: "edit-event-form", htmlType: "submit" }}
+        cancelButtonProps={{ onClick: editModalProps.onCancel }}
+    >
+        <EventForm formProps={{ ...editFormProps, id: "edit-event-form" }} />
+    </Modal>
+            </>
         // </Show>
     );
 };

@@ -87,9 +87,11 @@ export type User = {
 
 export type IEvent = {
   id: number;
-  title: string;
+  name: string;
+  phone: number;
   date: string;
-  type: "warning" | "success" | "error";
+  agenda: string;
+  status: "new" | "completed" | "cancelled";
 }
 
 export type Media = {
