@@ -93,7 +93,7 @@ export const CalendarPage = () => {
                     <li key={item.id}>
                         <Badge
                             // status={item.type as BadgeProps["status"]}
-                            text={item.name}
+                            text={item.event_name}
                             onClick={() => handleEventClick(item.id)}
                             style={{ cursor: "pointer" }}
                         />

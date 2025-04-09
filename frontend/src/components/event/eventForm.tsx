@@ -6,7 +6,7 @@ import InputMask from "react-input-mask";
 export const EventForm = ({ modalProps, formProps }: any) => {
     return (
         <Form {...formProps} layout="vertical">
-            <Form.Item label="Name" name="name" rules={[{ required: true }]}>
+            <Form.Item label="Name" name="event_name" rules={[{ required: true }]}>
                 <Input />
             </Form.Item>
             <Form.Item name="phone" label="Phone" rules={[{ required: false }]}>

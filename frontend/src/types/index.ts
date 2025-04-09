@@ -87,7 +87,7 @@ export type User = {
 
 export type IEvent = {
   id: number;
-  name: string;
+  event_name: string;
   phone: number;
   date: string;
   agenda: string;
