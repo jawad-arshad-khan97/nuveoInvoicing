@@ -92,7 +92,7 @@ export const CalendarPage = () => {
                 {listData?.map((item) => (
                     <li key={item.id}>
                         <Badge
-                            // status={item.type as BadgeProps["status"]}
+                            status={item.status as BadgeProps["status"]}
                             text={item.event_name}
                             onClick={() => handleEventClick(item.id)}
                             style={{ cursor: "pointer" }}
@@ -104,7 +104,6 @@ export const CalendarPage = () => {
     };
 
     return (
-        // <Show title={false} headerProps={{extra: null}}>
         <>
             <Calendar
                 onPanelChange={panelChange}
@@ -131,6 +130,5 @@ export const CalendarPage = () => {
         <EventForm formProps={{ ...editFormProps, id: "edit-event-form" }} />
     </Modal>
             </>
-        // </Show>
     );
 };

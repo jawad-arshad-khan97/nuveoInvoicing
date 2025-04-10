@@ -1,4 +1,4 @@
-import { file2Base64, type HttpError, useNavigation } from "@refinedev/core";
+import {file2Base64, type HttpError, useNavigation} from "@refinedev/core";
 import {
     DateField,
     DeleteButton,
@@ -6,27 +6,28 @@ import {
     NumberField,
     Show,
     ShowButton,
-    useForm,
+    useForm, useSelect,
 } from "@refinedev/antd";
-import { Card, Divider, Flex, Form, Table, Typography } from "antd";
+import {Card, Divider, Flex, Form, SelectProps, Table, Typography} from "antd";
 import {
     BankOutlined,
-    EnvironmentOutlined,
+    EnvironmentOutlined, ExportOutlined,
     FieldTimeOutlined,
     PhoneOutlined,
 } from "@ant-design/icons";
-import { Col, Row } from "antd";
+import {Col, Row} from "antd";
 import {
-    FormItemEditableInputText,
+    FormItemEditableInputText, FormItemEditableSelectStatic,
     FormItemEditableText,
 } from "@/components/form";
-import type { IEvent } from "@/types";
+import type {IEvent} from "@/types";
 import {FormItemEditableInputDateTime} from "@/components/form/form-item-editable-input-datetime";
+import dayjs from "dayjs";
 
 export const EventsPageEdit = () => {
-    const { listUrl } = useNavigation();
+    const {listUrl} = useNavigation();
 
-    const { formProps, query: queryResult } = useForm<
+    const {formProps, query: queryResult} = useForm<
         IEvent,
         HttpError
     >({
@@ -36,7 +37,30 @@ export const EventsPageEdit = () => {
         // },
     });
     const event = queryResult?.data?.data;
+    const status = event?.status;
+    const date = event?.date
+        ? dayjs(event.date)
+        : null;
     const isLoading = queryResult?.isLoading;
+
+    const statusOptions = [
+        {label: "New", value: "new" as IEvent["status"]},
+        {label: "Completed", value: "completed"},
+        {label: "Cancelled", value: "cancelled"},
+    ];
+
+    const getStatusColor = (status: string | undefined) => {
+        switch (status) {
+            case "completed":
+                return "green";
+            case "new":
+                return "orange";
+            case "cancelled":
+                return "red";
+            default:
+                return "default";
+        }
+    };
 
     const userData = localStorage.getItem("user");
     let userId = "";
@@ -63,6 +87,11 @@ export const EventsPageEdit = () => {
         >
             <Form
                 {...formProps}
+                initialValues={{
+                    ...queryResult?.data?.data,
+                    date: date,
+                    status: status,
+                }}
                 onFinish={async (values) => {
                     return formProps.onFinish?.({
                         ...values,
@@ -78,7 +107,7 @@ export const EventsPageEdit = () => {
                                 loading={isLoading}
                                 formItemProps={{
                                     name: "event_name",
-                                    rules: [{ required: true }],
+                                    rules: [{required: true}],
                                 }}
                             />
                         </Flex>
@@ -90,13 +119,13 @@ export const EventsPageEdit = () => {
                         marginTop: "32px",
                     }}
                 >
-                    <Col xs={{ span: 24 }} xl={{ span: 8 }}>
+                    <Col xs={{span: 24}} xl={{span: 8}}>
                         <Card
                             bordered={false}
-                            styles={{ body: { padding: 0 } }}
+                            styles={{body: {padding: 0}}}
                             title={
                                 <Flex gap={12} align="center">
-                                    <BankOutlined />
+                                    <BankOutlined/>
                                     <Typography.Text>Event info</Typography.Text>
                                 </Flex>
                             }
@@ -104,34 +133,52 @@ export const EventsPageEdit = () => {
 
                             <FormItemEditableInputText
                                 loading={isLoading}
-                                icon={<PhoneOutlined />}
+                                icon={<PhoneOutlined/>}
                                 placeholder="Add phone number"
                                 formItemProps={{
                                     name: "phone",
                                     label: "Phone",
-                                    rules: [{ required: false }],
+                                    rules: [{required: false}],
                                 }}
                             />
-                            <Divider style={{ margin: 0 }} />
+                            <Divider style={{margin: 0}}/>
                             <FormItemEditableInputDateTime
                                 loading={isLoading}
-                                icon={<FieldTimeOutlined />}
+                                icon={<FieldTimeOutlined/>}
                                 placeholder="Add date time"
                                 formItemProps={{
                                     name: "date",
                                     label: "date",
+                                    rules: [{required: true}],
+                                }}
+                            />
+                            <Divider style={{margin: 0}}/>
+                            <FormItemEditableSelectStatic
+                                loading={isLoading}
+                                icon={<BankOutlined />}
+                                editIcon={<ExportOutlined />}
+                                placeholder="Select status"
+                                options={[
+                                    { label: "New", value: "new" },
+                                    { label: "Completed", value: "completed" },
+                                    { label: "Cancelled", value: "cancelled" },
+                                ]}
+                                formItemProps={{
+                                    name: "status",
+                                    label: "Status",
                                     rules: [{ required: true }],
                                 }}
                             />
-                            <Divider style={{ margin: 0 }} />
+
+                            <Divider style={{margin: 0}}/>
                             <FormItemEditableInputText
                                 loading={isLoading}
-                                icon={<EnvironmentOutlined />}
+                                icon={<EnvironmentOutlined/>}
                                 placeholder="Add agenda"
                                 formItemProps={{
                                     name: "agenda",
                                     label: "agenda",
-                                    rules: [{ required: false }],
+                                    rules: [{required: false}],
                                 }}
                             />
                         </Card>

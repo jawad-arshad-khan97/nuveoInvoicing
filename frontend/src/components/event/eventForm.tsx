@@ -1,39 +1,59 @@
-import { Form, Input, DatePicker, Select } from "antd";
+import {Form, Input, DatePicker, Select} from "antd";
 import dayjs from "dayjs";
-import type { IEvent } from "../../types/index";
+import type {IEvent} from "../../types/index";
 import InputMask from "react-input-mask";
 
-export const EventForm = ({ modalProps, formProps }: any) => {
+export const EventForm = ({modalProps, formProps}: any) => {
+    const userData = localStorage.getItem("user");
+    let userId = "";
+    if (userData) {
+        const parsedUserData = JSON.parse(userData);
+        userId = parsedUserData.userId;
+    }
+
+    const initialValues = {
+        ...formProps.initialValues,
+        date: formProps.initialValues?.date
+            ? dayjs(formProps.initialValues.date)
+            : undefined,
+    };
     return (
-        <Form {...formProps} layout="vertical">
-            <Form.Item label="Name" name="event_name" rules={[{ required: true }]}>
-                <Input />
+        <Form {...formProps} layout="vertical"  initialValues={initialValues} onFinish={async (values) => {
+            userId;
+
+            return formProps.onFinish?.({
+                ...values,
+                userId: userId,
+            });
+        }}>
+            <Form.Item label="Name" name="event_name" rules={[{required: true}]}>
+            <Input />
             </Form.Item>
-            <Form.Item name="phone" label="Phone" rules={[{ required: false }]}>
-                <InputMask mask="(999) 999-9999">
-                    {/* @ts-expect-error  <InputMask /> expects JSX.Element but we are using React.ReactNode */}
-                    {(props: InputProps) => (
-                        <Input {...props} placeholder="Please enter phone number" />
-                    )}
-                </InputMask>
-            </Form.Item>
-            <Form.Item label="Date" name="date" rules={[{ required: true }]}>
-                <DatePicker style={{ width: "100%" }} showTime={{ format: "mm:hh A" }}
-                            format="DD-MM-YYYY mm:HH" />
-            </Form.Item>
-            <Form.Item label="Agenda" name="agenda" rules={[{ required: false }]}>
-                <Input.TextArea
-                    placeholder="Enter agenda here"
-                    autoSize={{ minRows: 2, maxRows: 6 }}
-                />
-            </Form.Item>
-            <Form.Item label="Status" name="status" initialValue="new" rules={[{ required: true }]}>
-                <Select options={[
-                    { label: "New", value: "new" },
-                    { label: "Completed", value: "completed" },
-                    { label: "Cancelled", value: "cancelled" },
-                ]} />
-            </Form.Item>
-        </Form>
-    );
+            <Form.Item name="phone" label="Phone" rules={[{required: false}]}>
+            <InputMask mask="(999) 999-9999">
+                {/* @ts-expect-error  <InputMask /> expects JSX.Element but we are using React.ReactNode */}
+                {(props: InputProps) => (
+                    <Input {...props} placeholder="Please enter phone number"/>
+                )}
+            </InputMask>
+        </Form.Item>
+    <Form.Item label="Date" name="date" rules={[{required: true}]}>
+        <DatePicker style={{width: "100%"}} showTime={{format: "mm:hh A"}}
+                    format="DD-MM-YYYY mm:HH"/>
+    </Form.Item>
+    <Form.Item label="Agenda" name="agenda" rules={[{required: false}]}>
+        <Input.TextArea
+            placeholder="Enter agenda here"
+            autoSize={{minRows: 2, maxRows: 6}}
+        />
+    </Form.Item>
+    <Form.Item label="Status" name="status" initialValue="new" rules={[{required: true}]}>
+        <Select options={[
+            {label: "New", value: "new"},
+            {label: "Completed", value: "completed"},
+            {label: "Cancelled", value: "cancelled"},
+        ]}/>
+    </Form.Item>
+</Form>
+);
 };

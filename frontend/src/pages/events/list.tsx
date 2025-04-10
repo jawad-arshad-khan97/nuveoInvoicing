@@ -9,7 +9,7 @@ import {
     NumberField,
     getDefaultSortOrder,
     useSelect,
-    useTable, DateField,
+    useTable, DateField, TagField,
 } from "@refinedev/antd";
 import {EyeOutlined, MailOutlined, SearchOutlined} from "@ant-design/icons";
 import { Avatar, Flex, Input, Select, Table, Typography } from "antd";
@@ -49,6 +49,20 @@ export const EventsPageList = ({ children }: PropsWithChildren) => {
         optionLabel: "status",
         optionValue: "status",
     });
+
+    const getStatusColor = (status: string | undefined) => {
+        switch (status?.toLowerCase()) {
+            case "completed":
+                return "green";
+            case "new":
+                return "purple";
+            case "cancelled":
+                return "red";
+            default:
+                return "default"; // fallback color
+        }
+    };
+
 
     return (
         <>
@@ -169,9 +183,9 @@ export const EventsPageList = ({ children }: PropsWithChildren) => {
                             "date",
                             sorters
                         )}
-                        render={(_, record: Invoice) => {
+                        render={(_, record: IEvent) => {
                             return (
-                                <DateField value={record.invoiceDate}
+                                <DateField value={record.date}
                                            format="D MMM YYYY hh:mm A" />
                             );
                         }}
@@ -180,6 +194,7 @@ export const EventsPageList = ({ children }: PropsWithChildren) => {
                         title="Status"
                         dataIndex="status"
                         key="status"
+                        width={106}
                         sorter
                         defaultSortOrder={getDefaultSortOrder("status", sorters)}
                         defaultFilteredValue={getDefaultFilter(
@@ -196,6 +211,9 @@ export const EventsPageList = ({ children }: PropsWithChildren) => {
                                     {...eventStatusSelectProps}
                                 />
                             </FilterDropdown>
+                        )}
+                        render={(status: string) => (
+                            <TagField value={status} color={getStatusColor(status)} />
                         )}
                     />
                     <Table.Column

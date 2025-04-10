@@ -6,17 +6,16 @@ import {CalendarPage} from "@/components/calendar/Calendar";
 export const DashboardPage: React.FC = () => {
     return (
         <Row gutter={[16, 16]}>
-            <Col xs={24} lg={8}>
-                <Card title="Appointments" bordered={false}>
-                    <CalendarPage/>
-                </Card>
-            </Col>
             <Col xs={24} lg={16}>
                 <Card title="Monthly Income Overview" bordered={false}>
                     <MonthlyIncomeChart/>
                 </Card>
             </Col>
-
+            <Col xs={24} lg={24}>
+                <Card title="Appointments" bordered={false}>
+                    <CalendarPage/>
+                </Card>
+            </Col>
         </Row>
     );
 };

@@ -14,6 +14,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import invoiceRouter from "./routes/invoice.routes.js";
+import eventRouter from "./routes/event.routes.js";
 import analyticsRouter from "./routes/analytics.routes.js";
 import zatcaXmlInvoiceRouter from "./zatca/zatcaInvoiceXMLGenerate.js";
 
@@ -38,6 +39,7 @@ app.use("/api/v1/accounts", accountRouter);
 app.use("/api/v1/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/v1/currencies", currencyRouter);
 app.use("/api/v1/invoices", invoiceRouter);
+app.use("/api/v1/events", eventRouter);
 app.use("/api/v1/monthly-income", analyticsRouter);
 app.use("/api/v1/generateXMLInvoices", zatcaXmlInvoiceRouter);
 

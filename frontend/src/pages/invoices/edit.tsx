@@ -224,56 +224,6 @@ export const InvoicesPageEdit = () => {
               </Typography.Text>
             }
           >
-            {/* <Row className={styles.fromToContainer} gutter={[24, 16]}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name={["account", "account_name"]}
-                  label="From (Account Name)"
-                  rules={[
-                    { required: true, message: "Account name is required" },
-                  ]}
-                >
-                  <Select {...accountSelectProps} />
-                </Form.Item>
-                <Form.Item
-                  name={["account", "address"]}
-                  label="Account Address"
-                  rules={[{ required: false, message: "Address is required" }]}
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  name={["account", "phone"]}
-                  label="Account Phone"
-                  rules={[{ required: false, message: "Phone is required" }]}
-                >
-                  <Input />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name={["client", "name"]}
-                  label="To (Client)"
-                  rules={[{ required: true, message: "Client is required" }]}
-                >
-                  <Select {...clientSelectProps} />
-                </Form.Item>
-                <Form.Item
-                  name={["client", "address"]}
-                  label="Client Address"
-                  rules={[{ required: false, message: "Address is required" }]}
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  name={["client", "phone"]}
-                  label="Client Phone"
-                  rules={[{ required: false, message: "Phone is required" }]}
-                >
-                  <Input />
-                </Form.Item>
-              </Col>
-            </Row> */}
 
             <Flex
               align="center"
