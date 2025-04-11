@@ -91,7 +91,7 @@ export type IEvent = {
   phone: number;
   date: string;
   agenda: string;
-  status: "new" | "completed" | "cancelled";
+  status: "new" | "done" | "cancelled";
 }
 
 export type Media = {

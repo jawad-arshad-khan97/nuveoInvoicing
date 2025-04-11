@@ -52,7 +52,7 @@ export const EventsPageList = ({ children }: PropsWithChildren) => {
 
     const getStatusColor = (status: string | undefined) => {
         switch (status?.toLowerCase()) {
-            case "completed":
+            case "done":
                 return "green";
             case "new":
                 return "purple";

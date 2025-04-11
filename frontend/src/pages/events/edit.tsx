@@ -45,13 +45,13 @@ export const EventsPageEdit = () => {
 
     const statusOptions = [
         {label: "New", value: "new" as IEvent["status"]},
-        {label: "Completed", value: "completed"},
+        {label: "Done", value: "done"},
         {label: "Cancelled", value: "cancelled"},
     ];
 
     const getStatusColor = (status: string | undefined) => {
         switch (status) {
-            case "completed":
+            case "done":
                 return "green";
             case "new":
                 return "orange";
@@ -160,7 +160,7 @@ export const EventsPageEdit = () => {
                                 placeholder="Select status"
                                 options={[
                                     { label: "New", value: "new" },
-                                    { label: "Completed", value: "completed" },
+                                    { label: "Done", value: "done" },
                                     { label: "Cancelled", value: "cancelled" },
                                 ]}
                                 formItemProps={{

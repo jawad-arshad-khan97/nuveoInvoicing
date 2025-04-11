@@ -50,7 +50,7 @@ export const EventForm = ({modalProps, formProps}: any) => {
     <Form.Item label="Status" name="status" initialValue="new" rules={[{required: true}]}>
         <Select options={[
             {label: "New", value: "new"},
-            {label: "Completed", value: "completed"},
+            {label: "Done", value: "done"},
             {label: "Cancelled", value: "cancelled"},
         ]}/>
     </Form.Item>

@@ -52,6 +52,20 @@ export const CalendarPage = () => {
         showEdit(eventId);
     };
 
+    const getBadgeStatus = (status: string): BadgeProps["status"] => {
+        switch (status) {
+            case "new":
+                return "processing";
+            case "done":
+                return "success";
+            case "cancelled":
+                return "error";
+            default:
+                return "default";
+        }
+    };
+
+
     // const handleDelete = (id: number) => {
     //     Modal.confirm({
     //         title: "Delete Event?",
@@ -92,7 +106,7 @@ export const CalendarPage = () => {
                 {listData?.map((item) => (
                     <li key={item.id}>
                         <Badge
-                            status={item.status as BadgeProps["status"]}
+                            status={getBadgeStatus(item.status)}
                             text={item.event_name}
                             onClick={() => handleEventClick(item.id)}
                             style={{ cursor: "pointer" }}

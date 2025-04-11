@@ -47,7 +47,7 @@ export const EventsPageCreate = () => {
                             width: "420px",
                         }}
                     >
-                        <Form.Item label="Name" name="name" rules={[{ required: true }]}>
+                        <Form.Item label="Name" name="event_name" rules={[{ required: true }]}>
                             <Input />
                         </Form.Item>
                         <Form.Item name="phone" label="Phone" rules={[{ required: false }]}>
@@ -71,7 +71,7 @@ export const EventsPageCreate = () => {
                         <Form.Item label="Status" name="status" initialValue="new" rules={[{ required: true }]}>
                             <Select options={[
                                 { label: "New", value: "new" },
-                                { label: "Completed", value: "completed" },
+                                { label: "Done", value: "done" },
                                 { label: "Cancelled", value: "cancelled" },
                             ]} />
                         </Form.Item>
