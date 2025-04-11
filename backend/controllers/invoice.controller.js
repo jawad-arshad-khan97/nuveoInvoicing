@@ -46,9 +46,12 @@ const getAllInvoices = async (req, res) => {
       }
     });
 
-    const { id, invoice_name } = req.query;
+    const { id, invoice_name, month } = req.query;
     if (id) {
       query.id = { $regex: new RegExp(`^${id}$`, "i") };
+    }
+    if (invoice_name) {
+      query.invoice_name = { $regex: new RegExp(`^${invoice_name}$`, "i") }; // Exact match for title, case-insensitive
     }
 
     const {
@@ -73,9 +76,7 @@ const getAllInvoices = async (req, res) => {
         query.client = client._id;
       }
     }
-    if (invoice_name) {
-      query.invoice_name = { $regex: new RegExp(`^${invoice_name}$`, "i") }; // Exact match for title, case-insensitive
-    }
+
 
     let queryBuilder = Invoice.find(query)
       .limit(options.limit)

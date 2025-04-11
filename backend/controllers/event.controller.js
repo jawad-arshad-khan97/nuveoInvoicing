@@ -1,6 +1,7 @@
 import Event from "../mongodb/models/event.js";
 import User from "../mongodb/models/user.js";
 import * as dotenv from "dotenv";
+import dayjs from "dayjs";
 
 import mongoose from "mongoose";
 dotenv.config();
@@ -49,7 +50,7 @@ const getAllEvents = async (req, res) => {
             }
         });
 
-        const { id, event_name, status } = req.query;
+        const { id, event_name, status, date } = req.query;
         if (id) {
             query.id = { $regex: new RegExp(`^${id}$`, "i") };
         }
@@ -57,7 +58,16 @@ const getAllEvents = async (req, res) => {
             query.event_name = { $regex: new RegExp(`^${event_name}$`, "i") }; // Exact match for title, case-insensitive
         }
         if (status) {
-            query.status = { $regex: new RegExp(`^${status}$`, "i") }; // Partial match for owner, case-insensitive
+            query.status = status;  // Partial match for owner, case-insensitive
+        }
+        if (date) {
+            const start = dayjs(date, "YYYY-MM-DD").startOf("day").toDate();
+            const end = dayjs(date, "YYYY-MM-DD").endOf("day").toDate();
+
+            query.date = {
+                $gte: start,
+                $lt: end,
+            };
         }
 
         // Population: Handle populate parameters
