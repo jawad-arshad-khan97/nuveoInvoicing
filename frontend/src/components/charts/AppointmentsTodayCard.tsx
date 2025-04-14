@@ -4,9 +4,9 @@ import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import dayjs from "dayjs";
 
 const STATUS_COLORS: Record<string, string> = {
-    new: "#FAAD14",        // blue
-    done: "#52C41A",  // green
-    cancelled: "#FA541C",  // red
+    new: "#2F54EB",        // blue
+    done: "#4caf50",  // green
+    cancelled: "#f44336",  // red
 };
 
 export const AppointmentsTodayCard = () => {

@@ -5,6 +5,10 @@ import Client from "../mongodb/models/client.js";
 import User from "../mongodb/models/user.js";
 import mongoose from "mongoose";
 
+const roundToFour = (num) => {
+  return Number(Number(num).toFixed(4));
+};
+
 const getAllInvoices = async (req, res) => {
   try {
     const query = {};
@@ -127,7 +131,7 @@ const createInvoice = async (req, res) => {
       services,
       tax,
       subtotal,
-      total = 0.0,
+      total,
       status,
       invoiceDate,
       note,
@@ -159,6 +163,8 @@ const createInvoice = async (req, res) => {
       services.map((service) => ({ ...service, creator: userId })),
       { session }
     );
+    let subTotalRounded = roundToFour(subtotal);
+    let totalRounded = roundToFour(total);
 
     const newInvoice = new Invoice({
       id: nextId,
@@ -169,8 +175,8 @@ const createInvoice = async (req, res) => {
       createdDate: new Date(),
       services: serviceDocs.map((s) => s._id),
       tax,
-      subtotal,
-      total,
+      subTotalRounded,
+      totalRounded,
       invoiceDate: new Date(invoiceDate),
       note,
       custom_id,
@@ -233,7 +239,7 @@ const updateInvoice = async (req, res) => {
       return res.status(404).json({ message: "User Not Found" });
     }
 
-    const invoice = await Invoice.findById(id).session(session);
+    const invoice = await Invoice.findOne({ id: id }).session(session);
     if (!invoice) {
       await session.abortTransaction();
       return res.status(404).json({ message: "Invoice not found" });
@@ -267,6 +273,9 @@ const updateInvoice = async (req, res) => {
       await Service.deleteMany({ _id: { $in: deletedServices } }, { session });
     }
 
+    let subTotalRounded = roundToFour(subtotal);
+    let totalRounded = roundToFour(total);
+
     // Update the invoice
     invoice.account = account;
     invoice.client = client;
@@ -276,18 +285,25 @@ const updateInvoice = async (req, res) => {
       ...newServiceDocs.map((s) => s._id),
     ];
     invoice.tax = tax;
-    invoice.subtotal = subtotal;
-    invoice.total = total;
+    invoice.subtotal = subTotalRounded;
+    invoice.total = totalRounded;
     invoice.status = status;
     invoice.currency = currency;
     invoice.invoice_name = invoice_name;
-    invoice.note = invoice.note;
+    invoice.note = note;
+    invoice.custom_id = custom_id;
     invoice.creator = userId;
 
-    await invoice.save({ session });
+    try {
+      await invoice.save({ session });
+    } catch (err) {
+      console.error("Invoice save error:", err);
+      await session.abortTransaction();
+      return res.status(500).json({ message: "Failed to save invoice", error: err.message });
+    }
 
     if (account) {
-      const accountToUpdate = await Account.findOne({ _id: account }).session(
+      const accountToUpdate = await Account.findById({ _id: account._id }).session(
         session
       );
       if (accountToUpdate && !accountToUpdate.invoices.includes(invoice._id)) {
@@ -297,7 +313,7 @@ const updateInvoice = async (req, res) => {
     }
 
     if (client) {
-      const clientToUpdate = await Client.findOne({ _id: client }).session(
+      const clientToUpdate = await Client.findOne({ _id: client._id }).session(
         session
       );
       if (clientToUpdate && !clientToUpdate.invoices.includes(invoice._id)) {

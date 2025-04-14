@@ -39,8 +39,6 @@ export const InvoicesPageShow = () => {
     ? `${API_URL}${invoice?.account?.logo}`
     : undefined;
 
-  console.log(invoice?.services);
-
   const { show, visible, close } = useModal();
 
   return (
@@ -160,7 +158,7 @@ export const InvoicesPageShow = () => {
                           fontWeight: 700,
                         }}
                       >
-                        {invoice?.client?.name}
+                        {invoice?.client?.client_name}
                       </Typography.Text>
                       <Typography.Text>
                         {invoice?.client?.address}
@@ -268,7 +266,7 @@ export const InvoicesPageShow = () => {
                   }}
                 >
                   <Typography.Text className={styles.labelTotal}>
-                    Sales tax:
+                    Tax:
                   </Typography.Text>
                   <Typography.Text>{invoice?.tax || 0}%</Typography.Text>
                 </Flex>

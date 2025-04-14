@@ -564,7 +564,7 @@ export const InvoicesPageCreate = () => {
                   }}
                 >
                   <Typography.Text className={styles.labelTotal}>
-                    Sales tax:
+                    Tax:
                   </Typography.Text>
                   <InputNumber
                     addonAfter="%"

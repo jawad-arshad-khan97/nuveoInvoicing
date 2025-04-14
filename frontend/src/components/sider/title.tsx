@@ -4,7 +4,7 @@ import { Typography, theme, Space } from "antd";
 import type { RefineLayoutThemedTitleProps } from "@refinedev/antd";
 import { Logo } from "../logo";
 
-const defaultText = "Jawads Invoicer";
+const defaultText = "SyncShire";
 
 const defaultIcon = (
   <svg

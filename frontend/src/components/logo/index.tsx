@@ -17,7 +17,7 @@ export const Logo = (props: Props) => {
   return (
     <Flex
       align="center"
-      gap={12}
+      gap={8}
       className={props.className}
       style={{
         height: "48px",
@@ -25,20 +25,20 @@ export const Logo = (props: Props) => {
       }}
     >
       <IconInvoicerLogo {...props.svgProps} />
-      <Flex gap={4}>
+      <Flex gap={1}>
         <Typography.Title
           className={styles.headerTitleRefine}
           level={5}
           {...props.titleProps}
         >
-          Jawad's{" "}
+          SyncShire
         </Typography.Title>
         <Typography.Title
           className={styles.headerTitleInvoicer}
           level={5}
           {...props.titleProps}
         >
-          Invoicer
+          {/*FlowBit*/}
         </Typography.Title>
       </Flex>
     </Flex>

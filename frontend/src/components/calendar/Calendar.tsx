@@ -107,7 +107,7 @@ export const CalendarPage = () => {
                     <li key={item.id}>
                         <Badge
                             status={getBadgeStatus(item.status)}
-                            text={item.event_name}
+                            text={`${item.event_name} - ${dayjs(item.date).format("hh:mm A")}`}
                             onClick={() => handleEventClick(item.id)}
                             style={{ cursor: "pointer" }}
                         />
