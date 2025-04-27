@@ -93,6 +93,15 @@ export type IEvent = {
   agenda: string;
   status: "new" | "done" | "cancelled";
 }
+export type ClientMedia = {
+  id: number;
+  client: Client;
+  phone: number;
+  date: string;
+  agenda: string;
+  status: "new" | "done" | "cancelled";
+}
+
 
 export type Media = {
   id: string;
