@@ -81,6 +81,7 @@ const getAllClients = async (req, res) => {
     }
 
     queryBuilder = queryBuilder.populate([{ path: "account" }]);
+    queryBuilder = queryBuilder.populate([{ path: "invoices" }]);
 
     const totalCount = await Client.countDocuments(query);
 

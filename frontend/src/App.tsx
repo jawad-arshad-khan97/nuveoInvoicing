@@ -36,6 +36,11 @@ import {
     EventsPageCreate,
     EventsPageEdit,
 } from "@/pages/events";
+import {
+    ClientMediaPageList,
+    ClientMediaPageCreate,
+    ClientMediaPageEdit,
+} from "@/pages/clientmedia";
 import {DashboardPage} from "./pages/dashboard";
 import dataProvider from "@refinedev/simple-rest";
 import {authProvider} from "@/providers/auth-provider";
@@ -49,6 +54,7 @@ import {
     BankOutlined,
     ShopOutlined,
     ContainerOutlined,
+    FolderOutlined,
     TeamOutlined,
     FileAddOutlined,
     AuditOutlined,
@@ -97,6 +103,13 @@ const App: React.FC = () => {
                                 },
                             },
                             {
+                                name: "Archive",
+                                icon: <FolderOutlined/>,
+                                meta: {
+                                    label: "Archive",
+                                },
+                            },
+                            {
                                 name: "accounts",
                                 list: "/accounts",
                                 create: "/accounts/new",
@@ -127,16 +140,7 @@ const App: React.FC = () => {
                                 },
                                 icon: <FileAddOutlined/>,
                             },
-                            {
-                                name: "accounts",
-                                list: "/accounts",
-                                create: "/accounts/new",
-                                edit: "/accounts/:id/edit",
-                                meta: {
-                                    parent: "Invoicing",
-                                },
-                                icon: <BankOutlined/>,
-                            },
+
                             {
                                 name: "Appointments",
                                 icon: <FieldTimeOutlined/>,
@@ -153,6 +157,17 @@ const App: React.FC = () => {
                                     parent: "Appointments",
                                 },
                                 icon: <FieldTimeOutlined/>,
+                            },
+                            {
+                                name: "clientmedias",
+                                list: "/clientmedias",
+                                create: "/clientmedias/new",
+                                edit: "/clientmedias/:id/edit",
+                                meta: {
+                                    parent: "Archive",
+                                    label: "Client Archives"
+                                },
+                                icon: <TeamOutlined/>,
                             },
                         ]}
                         notificationProvider={useNotificationProvider}
@@ -255,6 +270,19 @@ const App: React.FC = () => {
                                     <Route path="new" element={<EventsPageCreate/>}/>
                                 </Route>
                                 <Route path="/events/:id/edit" element={<EventsPageEdit/>}/>
+
+                                <Route
+                                    path="/clientmedias"
+                                    element={
+                                        <ClientMediaPageList>
+                                            <Outlet/>
+                                        </ClientMediaPageList>
+                                    }
+                                >
+                                    <Route index element={null}/>
+                                    <Route path="new" element={<ClientMediaPageCreate/>}/>
+                                </Route>
+                                <Route path="/clients/:id/edit" element={<ClientMediaPageEdit/>}/>
 
                                 <Route path="*" element={<ErrorComponent/>}/>
                             </Route>

@@ -1,15 +1,15 @@
 import type { PropsWithChildren } from "react";
 import { getDefaultFilter, useGo } from "@refinedev/core";
 import {
-  CreateButton,
-  DeleteButton,
-  EditButton,
-  FilterDropdown,
-  List,
-  NumberField,
-  getDefaultSortOrder,
-  useSelect,
-  useTable,
+    CreateButton,
+    DeleteButton,
+    EditButton,
+    FilterDropdown,
+    List,
+    NumberField,
+    getDefaultSortOrder,
+    useSelect,
+    useTable, TagField,
 } from "@refinedev/antd";
 import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import { Avatar, Flex, Input, Select, Table, Typography } from "antd";
@@ -49,6 +49,8 @@ export const AccountsPageList = ({ children }: PropsWithChildren) => {
     optionLabel: "owner_name",
     optionValue: "owner_name",
   });
+
+    let currencySymbol = "$";
 
   return (
     <>
@@ -210,10 +212,11 @@ export const AccountsPageList = ({ children }: PropsWithChildren) => {
                 currency = invoice.currency;
               });
               return (
-                <NumberField
-                  value={total}
-                  options={{ style: "currency", currency: currency }}
-                />
+                  <TagField value={`${currencySymbol} ${total}`} color="green" />
+                // <NumberField
+                //   value={total}
+                //   options={{ style: "currency", currency: currency }}
+                // />
               );
             }}
           />

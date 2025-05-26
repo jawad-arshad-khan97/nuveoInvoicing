@@ -9,8 +9,8 @@ export const ClientMediaPageCreate = () => {
     const { formProps } = useForm<ClientMedia>();
 
     const getClientData = async (clientId: string) => {
-        return await useOne({
-            resource: "clients",
+        return useOne({
+            resource: "client",
             id: clientId,
         });
     };

@@ -27,15 +27,15 @@ export const ClientMediaPageList = ({ children }: PropsWithChildren) => {
         filters: {
             initial: [
                 {
-                    field: "event_name",
+                    field: "client",
                     operator: "contains",
                     value: "",
                 },
             ],
         },
-        // meta: {
-        //     populate: ["logo", "invoices"],
-        // },
+        meta: {
+            populate: ["client"],
+        },
     });
 
     const { selectProps: clientSelectProps } = useSelect({
@@ -44,42 +44,22 @@ export const ClientMediaPageList = ({ children }: PropsWithChildren) => {
         optionValue: "client_name",
     });
 
-    const { selectProps: eventStatusSelectProps } = useSelect({
-        resource: "events",
-        optionLabel: "status",
-        optionValue: "status",
-    });
-
-    const getStatusColor = (status: string | undefined) => {
-        switch (status?.toLowerCase()) {
-            case "done":
-                return "green";
-            case "new":
-                return "purple";
-            case "cancelled":
-                return "red";
-            default:
-                return "default"; // fallback color
-        }
-    };
-
-
     return (
         <>
             <List
-                title="Appointments/ClientMedia"
+                title="ClientMedia"
                 headerButtons={() => {
                     return (
                         <CreateButton
                             size="large"
                             onClick={() =>
                                 go({
-                                    to: { resource: "events", action: "create" },
+                                    to: { resource: "clientmedias", action: "create" },
                                     options: { keepQuery: true },
                                 })
                             }
                         >
-                            Add new event
+                            Add New Client Archives
                         </CreateButton>
                     );
                 }}
@@ -105,51 +85,6 @@ export const ClientMediaPageList = ({ children }: PropsWithChildren) => {
                                 <FilterDropdown {...props}>
                                     <Input placeholder="Search ID" />
                                 </FilterDropdown>
-                            );
-                        }}
-                    />
-                    <Table.Column
-                        title="Event Name"
-                        dataIndex="event_name"
-                        key="event_name"
-                        sorter
-                        defaultSortOrder={getDefaultSortOrder("event_name", sorters)}
-                        defaultFilteredValue={getDefaultFilter(
-                            "event_name",
-                            filters,
-                            "in"
-                        )}
-                        filterDropdown={(props) => (
-                            <FilterDropdown {...props}>
-                                <Select
-                                    mode="multiple"
-                                    placeholder="Search Event Name"
-                                    style={{ width: 220 }}
-                                    {...eventNameSelectProps}
-                                />
-                            </FilterDropdown>
-                        )}
-                        render={(name: string, record: ClientMedia) => {
-                            const src = null;
-
-                            return (
-                                <Flex align="center" gap={8}>
-                                    <Avatar
-                                        alt={name}
-                                        src={src}
-                                        shape="square"
-                                        style={{
-                                            backgroundColor: src
-                                                ? "none"
-                                                : getRandomColorFromString(name),
-                                        }}
-                                    >
-                                        <Typography.Text>
-                                            {name?.[0]?.toUpperCase()}
-                                        </Typography.Text>
-                                    </Avatar>
-                                    <Typography.Text>{name}</Typography.Text>
-                                </Flex>
                             );
                         }}
                     />
@@ -190,32 +125,7 @@ export const ClientMediaPageList = ({ children }: PropsWithChildren) => {
                             );
                         }}
                     />
-                    <Table.Column
-                        title="Status"
-                        dataIndex="status"
-                        key="status"
-                        width={106}
-                        sorter
-                        defaultSortOrder={getDefaultSortOrder("status", sorters)}
-                        defaultFilteredValue={getDefaultFilter(
-                            "status",
-                            filters,
-                            "in"
-                        )}
-                        filterDropdown={(props) => (
-                            <FilterDropdown {...props}>
-                                <Select
-                                    mode="multiple"
-                                    placeholder="Search status"
-                                    style={{ width: 220 }}
-                                    {...eventStatusSelectProps}
-                                />
-                            </FilterDropdown>
-                        )}
-                        render={(status: string) => (
-                            <TagField value={status} color={getStatusColor(status)} />
-                        )}
-                    />
+
                     <Table.Column
                         title="Actions"
                         key="actions"
