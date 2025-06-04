@@ -24,25 +24,20 @@ export const ClientMediaPageList = ({ children }: PropsWithChildren) => {
         sorters: {
             initial: [{ field: "updatedAt", order: "desc" }],
         },
-        filters: {
-            initial: [
-                {
-                    field: "client",
-                    operator: "contains",
-                    value: "",
-                },
-            ],
-        },
-        meta: {
-            populate: ["client"],
-        },
+        // filters: {
+        //     initial: [
+        //         {
+        //             field: "client",
+        //             operator: "contains",
+        //             value: "",
+        //         },
+        //     ],
+        // },
+        // meta: {
+        //     populate: ["client"],
+        // },
     });
 
-    const { selectProps: clientSelectProps } = useSelect({
-        resource: "clients",
-        optionLabel: "client_name",
-        optionValue: "client_name",
-    });
 
     return (
         <>
