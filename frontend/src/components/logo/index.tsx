@@ -31,7 +31,7 @@ export const Logo = (props: Props) => {
           level={5}
           {...props.titleProps}
         >
-          SyncShire
+          FlowBit
         </Typography.Title>
         <Typography.Title
           className={styles.headerTitleInvoicer}

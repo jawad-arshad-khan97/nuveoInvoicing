@@ -4,7 +4,7 @@ import { Typography, theme, Space } from "antd";
 import type { RefineLayoutThemedTitleProps } from "@refinedev/antd";
 import { Logo } from "../logo";
 
-const defaultText = "SyncShire";
+const defaultText = "FlowBit";
 
 const defaultIcon = (
   <svg
