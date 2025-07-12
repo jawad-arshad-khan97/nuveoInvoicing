@@ -122,3 +122,36 @@ export type Media = {
   createdDate: string;
   updatedDate: string;
 };
+
+export type SimplifiedInvoice = {
+  id: string;
+  invoice_name: string;
+  invoiceDate: string;
+  total: number;
+  client: Client;
+  account: Account;
+  note?: string;
+  currency: string;
+  status: string;
+  // Add any other fields specific to simplified invoices
+};
+
+export type StandardInvoice = {
+  id: string;
+  invoice_name: string;
+  invoiceDate: string;
+  discount: number;
+  tax: number;
+  custom_id: string;
+  services: Service[];
+  subtotal: number;
+  total: number;
+  createdDate: string;
+  updatedDate: string;
+  account: Account;
+  client: Client;
+  note: string;
+  currency: string;
+  status: string;
+  // Add any other fields specific to standard invoices
+};

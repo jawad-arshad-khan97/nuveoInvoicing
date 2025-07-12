@@ -1,3 +1,11 @@
 export { InvoicesPageCreate } from "./create";
+export { StandardInvoiceForm } from "./createStandard";
+export { SimplifiedInvoiceForm } from "./createSimplified";
 export { InvoicePageList } from "./list";
 export { InvoicesPageShow } from "./show";
+export { ListSimplifiedInvoices } from "./listSimplified";
+export { ListStandardInvoices } from "./listStandard";
+export { ShowSimplifiedInvoice } from "./showSimplified";
+export { ShowStandardInvoice } from "./showStandard";
+export { EditSimplifiedInvoice } from "./editSimplified";
+export { EditStandardInvoice } from "./editStandard";

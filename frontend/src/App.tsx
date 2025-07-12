@@ -29,6 +29,8 @@ import {
 import {
     InvoicePageList,
     InvoicesPageCreate,
+    SimplifiedInvoiceForm,
+    StandardInvoiceForm,
     InvoicesPageShow,
 } from "@/pages/invoices";
 import {
@@ -64,6 +66,14 @@ import {useAuth0} from "@auth0/auth0-react";
 import {Login} from "./providers/auth-provider/login";
 import axios from "axios";
 import {BASE_URL_API_V1} from "./utils/urls";
+import {
+    ListSimplifiedInvoices,
+    ListStandardInvoices,
+    ShowSimplifiedInvoice,
+    ShowStandardInvoice,
+    EditSimplifiedInvoice,
+    EditStandardInvoice,
+} from "@/pages/invoices";
 
 const App: React.FC = () => {
     const {isLoading, user, logout, getIdTokenClaims} = useAuth0();
@@ -140,7 +150,30 @@ const App: React.FC = () => {
                                 },
                                 icon: <FileAddOutlined/>,
                             },
-
+                            {
+                                name: "simplified B2C",
+                                list: "/simplifiedinvoices",
+                                show: "/simplifiedinvoices/:id",
+                                create: "/simplifiedinvoices/new",
+                                edit: "/simplifiedinvoices/:id/edit",
+                                meta: {
+                                    parent: "Invoicing",
+                                    label: "Simplified B2C",
+                                },
+                                icon: <FileAddOutlined/>,
+                            },
+                            {
+                                name: "standard B2B",
+                                list: "/standardinvoices",
+                                show: "/standardinvoices/:id",
+                                create: "/standardinvoices/new",
+                                edit: "/standardinvoices/:id/edit",
+                                meta: {
+                                    parent: "Invoicing",
+                                    label: "Standard B2B",
+                                },
+                                icon: <FileAddOutlined/>,
+                            },
                             {
                                 name: "Appointments",
                                 icon: <FieldTimeOutlined/>,
@@ -256,6 +289,17 @@ const App: React.FC = () => {
                                     <Route path="new" element={<InvoicesPageCreate/>}/>
                                     <Route path=":id" element={<InvoicesPageShow/>}/>
                                     <Route path=":id/edit" element={<InvoicesPageEdit/>}/>
+                                </Route>
+                                <Route path="/simplifiedinvoices">
+                                    <Route index element={<ListSimplifiedInvoices/>}/>
+                                    <Route path="new" element={<SimplifiedInvoiceForm/>}/>
+                                    <Route path=":id" element={<ShowSimplifiedInvoice/>}/>
+                                    <Route path=":id/edit" element={<EditSimplifiedInvoice/>}/>
+                                </Route><Route path="/standardinvoices">
+                                    <Route index element={<ListStandardInvoices/>}/>
+                                    <Route path="new" element={<StandardInvoiceForm/>}/>
+                                    <Route path=":id" element={<ShowStandardInvoice/>}/>
+                                    <Route path=":id/edit" element={<EditStandardInvoice/>}/>
                                 </Route>
 
                                 <Route
